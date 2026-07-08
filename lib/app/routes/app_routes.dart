@@ -1,8 +1,8 @@
 class AppRoutes {
   AppRoutes._();
 
-  static const String splash = '/';
-  static const String welcome = '/welcome';
-  static const String login = '/login';
-  static const String dashboard = '/dashboard';
+  static const splash = '/';
+  static const welcome = '/welcome';
+  static const login = '/login';
+  static const dashboard = '/dashboard';
 }

@@ -6,6 +6,7 @@ import 'package:sikarema_mobile/app/constants/app_constants.dart';
 import 'package:sikarema_mobile/app/routes/app_routes.dart';
 import 'package:sikarema_mobile/app/theme/app_colors.dart';
 import 'package:sikarema_mobile/app/theme/app_text_styles.dart';
+import 'package:sikarema_mobile/core/storage/storage_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -33,8 +34,20 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
+    Future.delayed(const Duration(seconds: 2), () async {
+      if (!mounted) {
+        return;
+      }
+
+      final token = await StorageService().getToken();
+
+      if (!mounted) {
+        return;
+      }
+
+      if (token != null && token.isNotEmpty) {
+        context.go(AppRoutes.dashboard);
+      } else {
         context.go(AppRoutes.welcome);
       }
     });
@@ -49,7 +62,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final logoSize = math.min(size.width * 0.26, 132.0);
+    final logoSize = math.min(size.width * 0.70, 320.0);
 
     return Scaffold(
       body: Container(
@@ -74,43 +87,14 @@ class _SplashScreenState extends State<SplashScreen>
                   children: [
                     FadeTransition(
                       opacity: _fadeAnimation,
-                      child: Container(
+                      child: Image.asset(
+                        'assets/logo/logontext-sikarema.png',
                         width: logoSize,
                         height: logoSize,
-                        decoration: BoxDecoration(
-                          color: AppColors.white.withValues(alpha: 0.16),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.white.withValues(alpha: 0.35),
-                            width: 2,
-                          ),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          'SK',
-                          style: AppTextStyles.headlineLarge.copyWith(
-                            color: AppColors.white,
-                            fontSize: logoSize * 0.34,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+                        fit: BoxFit.contain,
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: Text(
-                        AppConstants.appName,
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.headlineLarge.copyWith(
-                          color: AppColors.white,
-                          fontSize: math.min(size.width * 0.09, 36),
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     FadeTransition(
                       opacity: _fadeAnimation,
                       child: Padding(
@@ -120,7 +104,7 @@ class _SplashScreenState extends State<SplashScreen>
                           textAlign: TextAlign.center,
                           style: AppTextStyles.bodyMedium.copyWith(
                             color: AppColors.white.withValues(alpha: 0.9),
-                            fontSize: math.min(size.width * 0.035, 16),
+                            fontSize: math.min(size.width * 0.045, 19),
                             height: 1.5,
                           ),
                         ),

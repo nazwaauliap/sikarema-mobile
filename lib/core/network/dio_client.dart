@@ -1,54 +1,28 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:sikarema_mobile/app/constants/api_constants.dart';
-import 'package:sikarema_mobile/app/constants/storage_constants.dart';
 
+/// Singleton HTTP client used across the app for API communication.
 class DioClient {
-  DioClient._() {
-    _dio = Dio(
-      BaseOptions(
-        baseUrl: ApiConstants.baseUrl,
-        connectTimeout: ApiConstants.connectTimeout,
-        receiveTimeout: ApiConstants.receiveTimeout,
-        headers: {'Accept': 'application/json'},
-      ),
-    );
-
-    _dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) async {
-          final token = await _storage.read(key: StorageConstants.accessToken);
-          if (token != null && token.isNotEmpty) {
-            options.headers['Authorization'] = 'Bearer $token';
-          }
-          handler.next(options);
-        },
-      ),
-    );
-
-    if (kDebugMode) {
-      _dio.interceptors.add(
-        LogInterceptor(
-          request: true,
-          requestHeader: true,
-          requestBody: true,
-          responseHeader: true,
-          responseBody: true,
-          error: true,
-          logPrint: (obj) => debugPrint(obj.toString()),
-        ),
-      );
-    }
-  }
+  DioClient._();
 
   static final DioClient _instance = DioClient._();
 
   factory DioClient() => _instance;
 
-  late final Dio _dio;
+  /// Shared Dio instance with default configuration.
+  late final Dio _dio = Dio(
+    BaseOptions(
+      // Base URL utama API yang diambil dari ApiConstants.
+      baseUrl: ApiConstants.baseUrl,
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 15),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    ),
+  );
 
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
-
+  /// Getter untuk memudahkan pemakaian di service lain.
   Dio get dio => _dio;
 }

@@ -189,8 +189,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                         },
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: AppColors.white,
-                                          foregroundColor:
-                                              Colors.black87,
+                                          foregroundColor: Colors.black87,
                                           elevation: 4,
                                           shadowColor: Colors.black.withValues(
                                             alpha: 0.25,
@@ -220,27 +219,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                       height: 56,
                                       child: OutlinedButton(
                                         onPressed: () {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: const Text(
-                                                'Silakan hubungi Admin Prestasi.',
-                                              ),
-                                              backgroundColor:
-                                                  AppColors.secondaryGreen,
-                                              duration: const Duration(
-                                                seconds: 2,
-                                              ),
-                                              behavior:
-                                                  SnackBarBehavior.floating,
-                                              margin: const EdgeInsets.all(16),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                            ),
-                                          );
+                                          _showNoAccountBottomSheet(context);
                                         },
                                         style: OutlinedButton.styleFrom(
                                           foregroundColor: AppColors.white,
@@ -328,6 +307,125 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           ),
         )
         .toList();
+  }
+
+  /// BottomSheet informasi untuk pengguna yang belum punya akun.
+  /// Akun dibuat oleh Admin Prestasi, bukan melalui pendaftaran mandiri.
+  void _showNoAccountBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(30),
+              topRight: Radius.circular(30),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 24,
+                offset: const Offset(0, -6),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Drag handle
+                  Container(
+                    width: 44,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+
+                  // Illustration
+                  Center(
+                    child: Image.asset(
+                      'assets/images/admin-support.jpeg',
+                      height: 170,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Title
+                  Text(
+                    'Belum Punya Akun?',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.titleMedium.copyWith(
+                      color: AppColors.primaryBlue,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Description
+                  Text(
+                    'Akun dibuat oleh Admin Prestasi.\n'
+                    'Silakan hubungi admin untuk aktivasi akun.',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: Colors.black54,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+
+                  // OK Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            AppColors.primaryBlue,
+                            AppColors.secondaryGreen,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () => Navigator.of(sheetContext).pop(),
+                          child: Center(
+                            child: Text(
+                              'OK',
+                              style: AppTextStyles.titleMedium.copyWith(
+                                color: AppColors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 

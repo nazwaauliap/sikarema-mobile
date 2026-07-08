@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-import 'app_colors.dart';
-import 'app_text_styles.dart';
+import 'package:sikarema_mobile/app/theme/app_colors.dart';
+import 'package:sikarema_mobile/app/theme/app_text_styles.dart';
 
 class AppTheme {
   AppTheme._();
@@ -11,7 +10,7 @@ class AppTheme {
     final colorScheme = ColorScheme.light(
       primary: AppColors.primaryBlue,
       secondary: AppColors.secondaryGreen,
-      surface: AppColors.surface,
+      surface: AppColors.white,
       error: AppColors.danger,
       onPrimary: AppColors.white,
       onSecondary: AppColors.white,
@@ -30,7 +29,7 @@ class AppTheme {
         displayColor: AppColors.black,
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.white,
         foregroundColor: AppColors.black,
         elevation: 0,
         titleTextStyle: GoogleFonts.poppins(
@@ -39,7 +38,7 @@ class AppTheme {
           color: AppColors.black,
         ),
       ),
-      cardTheme: const CardThemeData(color: AppColors.surface, elevation: 1),
+      cardTheme: const CardThemeData(color: AppColors.white, elevation: 1),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primaryBlue,
@@ -66,7 +65,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surface,
+        fillColor: AppColors.white,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.grey),
