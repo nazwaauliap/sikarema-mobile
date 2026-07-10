@@ -1,13 +1,541 @@
 import 'package:flutter/material.dart';
+import 'package:sikarema_mobile/app/theme/app_colors.dart';
+import 'package:sikarema_mobile/app/theme/app_text_styles.dart';
 
-class DashboardScreen extends StatelessWidget {
+/// =====================================================================
+/// DASHBOARD SCREEN
+/// =====================================================================
+/// Catatan:
+/// - Semua data di bawah ini adalah DUMMY DATA.
+/// - Nanti saat integrasi API, cukup ganti isi method `_dummy...()`
+///   dengan hasil fetch dari repository/provider tanpa mengubah widget tree.
+/// - Tidak ada Provider/Repository/API di file ini (sesuai instruksi).
+/// =====================================================================
+
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  int _selectedIndex = 0;
+
+  // ---------------------------------------------------------------------
+  // DUMMY DATA (nanti diganti dari API)
+  // ---------------------------------------------------------------------
+  final String _userName = 'Nazwa Aulia Putri';
+  final String _userRole = 'Mahasiswa';
+
+  List<_SummaryItem> _dummySummary() {
+    return [
+      _SummaryItem(
+        title: 'Prestasi Saya',
+        value: '12',
+        subtitle: 'Total Prestasi',
+        icon: Icons.emoji_events_rounded,
+        iconBackground: const Color(0xFFFFF3D4),
+        iconColor: const Color(0xFFF4B400),
+      ),
+      _SummaryItem(
+        title: 'Klaim Saya',
+        value: '5',
+        subtitle: 'Dalam Proses',
+        icon: Icons.description_outlined,
+        iconBackground: AppColors.primaryBlue.withValues(alpha: 0.12),
+        iconColor: AppColors.primaryBlue,
+      ),
+      _SummaryItem(
+        title: 'Disetujui',
+        value: '7',
+        subtitle: 'Reward Disetujui',
+        icon: Icons.check_circle,
+        iconBackground: AppColors.success.withValues(alpha: 0.15),
+        iconColor: AppColors.success,
+        valueColor: AppColors.black,
+      ),
+      _SummaryItem(
+        title: 'Ditolak',
+        value: '1',
+        subtitle: 'Klaim Ditolak',
+        icon: Icons.cancel,
+        iconBackground: AppColors.danger.withValues(alpha: 0.12),
+        iconColor: AppColors.danger,
+        titleColor: AppColors.danger,
+        valueColor: AppColors.danger,
+      ),
+    ];
+  }
+
+  List<_AnnouncementItem> _dummyAnnouncements() {
+    return [
+      _AnnouncementItem(
+        title: 'Periode Klaim Reward',
+        description:
+            'Periode klaim reward periode Genop 2024/2025 telah dibuka.',
+        date: '20 Mei 2025',
+      ),
+    ];
+  }
+
+  // ---------------------------------------------------------------------
+  // BUILD
+  // ---------------------------------------------------------------------
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Dashboard')),
-      body: const Center(child: Text('Dashboard Screen')),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _HeaderSection(userName: _userName, userRole: _userRole),
+              const SizedBox(height: 20),
+              const _BannerSection(),
+              const SizedBox(height: 24),
+              _SectionHeader(title: 'Ringkasan', onSeeAll: () {}),
+              const SizedBox(height: 12),
+              _SummaryGrid(items: _dummySummary()),
+              const SizedBox(height: 24),
+              _SectionHeader(title: 'Pengumuman Terbaru', onSeeAll: () {}),
+              const SizedBox(height: 12),
+              ..._dummyAnnouncements().map(
+                (item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _AnnouncementCard(item: item, onTap: () {}),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _selectedIndex,
+        selectedItemColor: AppColors.primaryBlue,
+        unselectedItemColor: AppColors.grey,
+        selectedLabelStyle: AppTextStyles.bodyMedium.copyWith(fontSize: 12),
+        unselectedLabelStyle: AppTextStyles.bodyMedium.copyWith(fontSize: 12),
+        onTap: (index) {
+          setState(() => _selectedIndex = index);
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Beranda',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.emoji_events_outlined),
+            activeIcon: Icon(Icons.emoji_events),
+            label: 'Prestasi',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.assignment_outlined),
+            activeIcon: Icon(Icons.assignment),
+            label: 'Klaim',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history_outlined),
+            activeIcon: Icon(Icons.history),
+            label: 'Riwayat',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Akun',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// =====================================================================
+/// HEADER SECTION
+/// =====================================================================
+class _HeaderSection extends StatelessWidget {
+  const _HeaderSection({required this.userName, required this.userRole});
+
+  final String userName;
+  final String userRole;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text('Halo,', style: AppTextStyles.bodyMedium),
+                  const SizedBox(width: 4),
+                  const Text('👋', style: TextStyle(fontSize: 16)),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                userName,
+                style: AppTextStyles.titleMedium,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                userRole,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.grey,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            IconButton(
+              onPressed: () {},
+              icon: const Icon(Icons.notifications_none_rounded),
+              color: AppColors.primaryBlue,
+              iconSize: 26,
+            ),
+          ],
+        ),
+        const SizedBox(width: 4),
+        CircleAvatar(
+          radius: 22,
+          backgroundColor: AppColors.primaryBlue.withValues(alpha: 0.12),
+          child: const Icon(
+            Icons.person,
+            color: AppColors.primaryBlue,
+            size: 26,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// =====================================================================
+/// BANNER SECTION
+/// =====================================================================
+class _BannerSection extends StatelessWidget {
+  const _BannerSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+
+          colors: [
+          Color(0xFF2563EB),
+          Color(0xFF0EA5E9),
+          Color(0xFF10B981),
+          ],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Yuk, Terus Berprestasi, Raih Reward Terbaikmu!',
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: AppColors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Klaim reward-mu sekarang dan\ndapatkan apresiasi terbaik!',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.white.withValues(alpha: 0.9),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Image.asset(
+            'assets/icons/dashboard.png',
+            width: 72,
+            height: 72,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              // Fallback jika asset belum tersedia / path berbeda
+              return const Icon(
+                Icons.emoji_events,
+                color: AppColors.white,
+                size: 64,
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// =====================================================================
+/// SECTION HEADER (dipakai untuk "Ringkasan" & "Pengumuman Terbaru")
+/// =====================================================================
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title, this.onSeeAll});
+
+  final String title;
+  final VoidCallback? onSeeAll;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: AppTextStyles.titleMedium.copyWith(fontSize: 16),
+        ),
+        TextButton(
+          onPressed: onSeeAll,
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.zero,
+            minimumSize: const Size(0, 0),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: Text(
+            'Lihat Semua',
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.primaryBlue,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// =====================================================================
+/// SUMMARY GRID + CARD
+/// =====================================================================
+class _SummaryItem {
+  const _SummaryItem({
+    required this.title,
+    required this.value,
+    required this.subtitle,
+    required this.icon,
+    required this.iconBackground,
+    required this.iconColor,
+    this.titleColor,
+    this.valueColor,
+  });
+
+  final String title;
+  final String value;
+  final String subtitle;
+  final IconData icon;
+  final Color iconBackground;
+  final Color iconColor;
+  final Color? titleColor;
+  final Color? valueColor;
+}
+
+class _SummaryGrid extends StatelessWidget {
+  const _SummaryGrid({required this.items});
+
+  final List<_SummaryItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(child: _SummaryCard(item: items[0])),
+            const SizedBox(width: 12),
+            Expanded(child: _SummaryCard(item: items[1])),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(child: _SummaryCard(item: items[2])),
+            const SizedBox(width: 12),
+            Expanded(child: _SummaryCard(item: items[3])),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard({required this.item});
+
+  final _SummaryItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                item.title,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  fontSize: 13,
+                  color: item.titleColor ?? AppColors.black,
+                ),
+              ),
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: item.iconBackground,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(item.icon, size: 16, color: item.iconColor),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            item.value,
+            style: AppTextStyles.headlineLarge.copyWith(
+              fontSize: 28,
+              color: item.valueColor ?? AppColors.black,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            item.subtitle,
+            style: AppTextStyles.bodyMedium.copyWith(
+              fontSize: 12,
+              color: AppColors.grey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// =====================================================================
+/// ANNOUNCEMENT CARD
+/// =====================================================================
+class _AnnouncementItem {
+  const _AnnouncementItem({
+    required this.title,
+    required this.description,
+    required this.date,
+  });
+
+  final String title;
+  final String description;
+  final String date;
+}
+
+class _AnnouncementCard extends StatelessWidget {
+  const _AnnouncementCard({required this.item, this.onTap});
+
+  final _AnnouncementItem item;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: AppColors.primaryBlue.withValues(alpha: 0.12),
+              child: const Icon(
+                Icons.campaign_outlined,
+                color: AppColors.primaryBlue,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.description,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontSize: 12,
+                      color: AppColors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    item.date,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontSize: 11,
+                      color: AppColors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.grey,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:sikarema_mobile/app/routes/app_routes.dart';
 import 'package:sikarema_mobile/app/theme/app_colors.dart';
 import 'package:sikarema_mobile/app/theme/app_text_styles.dart';
 import 'package:sikarema_mobile/features/auth/data/services/auth_service.dart';
+import 'package:sikarema_mobile/core/storage/storage_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
 
   Future<void> _handleLogin() async {
+    
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
@@ -40,8 +42,9 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       if (response.success) {
-        debugPrint(response.data.token);
-        debugPrint(response.data.user.name);
+        StorageService().saveToken(response.data.token);
+        if (!mounted) return;
+        context.go(AppRoutes.dashboard);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(response.message)),
