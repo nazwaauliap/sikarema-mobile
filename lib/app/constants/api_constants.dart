@@ -8,4 +8,7 @@ class ApiConstants {
 
   /// Endpoint login Sanctum.
   static const String loginEndpoint = '/login';
+
+  /// Endpoint dashboard mahasiswa.
+  static const String dashboardEndpoint = '/dashboard';
 }

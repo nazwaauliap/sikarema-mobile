@@ -1,15 +1,17 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:sikarema_mobile/app/theme/app_colors.dart';
 import 'package:sikarema_mobile/app/theme/app_text_styles.dart';
+import 'package:sikarema_mobile/features/dashboard/data/models/dashboard_model.dart';
+import 'package:sikarema_mobile/features/dashboard/data/services/dashboard_service.dart';
 
 /// =====================================================================
 /// DASHBOARD SCREEN
 /// =====================================================================
 /// Catatan:
-/// - Semua data di bawah ini adalah DUMMY DATA.
-/// - Nanti saat integrasi API, cukup ganti isi method `_dummy...()`
-///   dengan hasil fetch dari repository/provider tanpa mengubah widget tree.
-/// - Tidak ada Provider/Repository/API di file ini (sesuai instruksi).
+/// - Data diambil dari GET /api/v1/dashboard via DashboardService.
+/// - Pengumuman Terbaru masih dummy karena belum tersedia di endpoint ini.
+/// - Tidak ada perubahan pada widget/layout/warna/typografi dashboard.
 /// =====================================================================
 
 class DashboardScreen extends StatefulWidget {
@@ -22,17 +24,79 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
 
-  // ---------------------------------------------------------------------
-  // DUMMY DATA (nanti diganti dari API)
-  // ---------------------------------------------------------------------
-  final String _userName = 'Nazwa Aulia Putri';
+  final DashboardService _dashboardService = DashboardService();
+
+  bool _isLoading = true;
+  String? _errorMessage;
+  DashboardModel? _dashboardData;
+
   final String _userRole = 'Mahasiswa';
 
-  List<_SummaryItem> _dummySummary() {
+  @override
+  void initState() {
+    super.initState();
+    _fetchDashboard();
+  }
+
+  Future<void> _fetchDashboard() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final response = await _dashboardService.getDashboard();
+      if (!mounted) return;
+      setState(() {
+        _dashboardData = response.data;
+        _isLoading = false;
+      });
+    } on DioException catch (e) {
+      if (!mounted) return;
+      final message = e.response?.data is Map<String, dynamic>
+          ? (e.response?.data['message']?.toString() ??
+                'Gagal memuat data dashboard.')
+          : 'Terjadi kesalahan saat memuat dashboard.';
+      setState(() {
+        _errorMessage = message;
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Terjadi kesalahan saat memuat dashboard.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  /// Nama dari API dikembalikan huruf kapital semua (mis. "NAZWA AULIA
+  /// PUTRI"), diformat ulang menjadi Title Case agar tampilannya konsisten
+  /// dengan desain awal ("Nazwa Aulia Putri"). Ini murni format teks,
+  /// bukan perubahan desain.
+  String get _userName {
+    final nama = _dashboardData?.nama.trim() ?? '';
+    if (nama.isEmpty) return 'Pengguna';
+    return nama
+        .toLowerCase()
+        .split(' ')
+        .map(
+          (word) => word.isEmpty
+              ? word
+              : '${word[0].toUpperCase()}${word.substring(1)}',
+        )
+        .join(' ');
+  }
+
+  // ---------------------------------------------------------------------
+  // RINGKASAN: dipetakan dari DashboardModel (data API)
+  // ---------------------------------------------------------------------
+  List<_SummaryItem> _buildSummary() {
+    final data = _dashboardData;
     return [
       _SummaryItem(
         title: 'Prestasi Saya',
-        value: '12',
+        value: '${data?.totalPrestasi ?? 0}',
         subtitle: 'Total Prestasi',
         icon: Icons.emoji_events_rounded,
         iconBackground: const Color(0xFFFFF3D4),
@@ -40,7 +104,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       _SummaryItem(
         title: 'Klaim Saya',
-        value: '5',
+        value: '${data?.menunggu ?? 0}',
         subtitle: 'Dalam Proses',
         icon: Icons.description_outlined,
         iconBackground: AppColors.primaryBlue.withValues(alpha: 0.12),
@@ -48,7 +112,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       _SummaryItem(
         title: 'Disetujui',
-        value: '7',
+        value: '${data?.terverifikasi ?? 0}',
         subtitle: 'Reward Disetujui',
         icon: Icons.check_circle,
         iconBackground: AppColors.success.withValues(alpha: 0.15),
@@ -57,7 +121,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       _SummaryItem(
         title: 'Ditolak',
-        value: '1',
+        value: '${data?.ditolak ?? 0}',
         subtitle: 'Klaim Ditolak',
         icon: Icons.cancel,
         iconBackground: AppColors.danger.withValues(alpha: 0.12),
@@ -68,6 +132,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ];
   }
 
+  // ---------------------------------------------------------------------
+  // PENGUMUMAN: masih dummy, belum ada di endpoint /api/v1/dashboard
+  // ---------------------------------------------------------------------
   List<_AnnouncementItem> _dummyAnnouncements() {
     return [
       _AnnouncementItem(
@@ -86,30 +153,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _HeaderSection(userName: _userName, userRole: _userRole),
-              const SizedBox(height: 20),
-              const _BannerSection(),
-              const SizedBox(height: 24),
-              _SectionHeader(title: 'Ringkasan', onSeeAll: () {}),
-              const SizedBox(height: 12),
-              _SummaryGrid(items: _dummySummary()),
-              const SizedBox(height: 24),
-              _SectionHeader(title: 'Pengumuman Terbaru', onSeeAll: () {}),
-              const SizedBox(height: 12),
-              ..._dummyAnnouncements().map(
-                (item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _AnnouncementCard(item: item, onTap: () {}),
+        child: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.primaryBlue,
+                ),
+              )
+            : _errorMessage != null
+            ? _buildErrorState()
+            : SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _HeaderSection(userName: _userName, userRole: _userRole),
+                    const SizedBox(height: 20),
+                    const _BannerSection(),
+                    const SizedBox(height: 24),
+                    _SectionHeader(title: 'Ringkasan', onSeeAll: () {}),
+                    const SizedBox(height: 12),
+                    _SummaryGrid(items: _buildSummary()),
+                    const SizedBox(height: 24),
+                    _SectionHeader(
+                      title: 'Pengumuman Terbaru',
+                      onSeeAll: () {},
+                    ),
+                    const SizedBox(height: 12),
+                    ..._dummyAnnouncements().map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _AnnouncementCard(item: item, onTap: () {}),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
@@ -148,6 +229,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
             label: 'Akun',
           ),
         ],
+      ),
+    );
+  }
+
+  /// State error minimal, hanya tampil saat fetch gagal (mis. token
+  /// kedaluwarsa / tidak ada koneksi). Bukan bagian dari desain final,
+  /// murni kebutuhan fungsional integrasi API.
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, color: AppColors.danger, size: 40),
+            const SizedBox(height: 12),
+            Text(
+              _errorMessage ?? 'Terjadi kesalahan',
+              style: AppTextStyles.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _fetchDashboard,
+              child: const Text('Coba Lagi'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -268,20 +377,20 @@ class _BannerSection extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          Image.asset(
-            'assets/icons/dashboard.png',
-            width: 72,
-            height: 72,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) {
-              // Fallback jika asset belum tersedia / path berbeda
-              return const Icon(
-                Icons.emoji_events,
-                color: AppColors.white,
-                size: 64,
-              );
-            },
+          const SizedBox(width: 20),
+          Flexible(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 100, maxHeight: 100),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Image.asset(
+                  'assets/images/dashboard.png',
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
           ),
         ],
       ),
