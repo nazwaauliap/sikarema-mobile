@@ -155,9 +155,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: SafeArea(
         child: _isLoading
             ? const Center(
-                child: CircularProgressIndicator(
-                  color: AppColors.primaryBlue,
-                ),
+                child: CircularProgressIndicator(color: AppColors.primaryBlue),
               )
             : _errorMessage != null
             ? _buildErrorState()
@@ -297,9 +295,7 @@ class _HeaderSection extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 userRole,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.grey,
-                ),
+                style: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey),
               ),
             ],
           ),
@@ -340,56 +336,56 @@ class _BannerSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         gradient: LinearGradient(
-
-          colors: [
-          Color(0xFF2563EB),
-          Color(0xFF0EA5E9),
-          Color(0xFF10B981),
-          ],
+          colors: [Color(0xFF2563EB), Color(0xFF0EA5E9), Color(0xFF10B981)],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   'Yuk, Terus Berprestasi, Raih Reward Terbaikmu!',
                   style: AppTextStyles.titleMedium.copyWith(
                     color: AppColors.white,
+                    fontSize: 15,
+                    height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Text(
                   'Klaim reward-mu sekarang dan\ndapatkan apresiasi terbaik!',
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.white.withValues(alpha: 0.9),
-                    fontSize: 12,
+                    fontSize: 11,
+                    height: 1.3,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 20),
-          Flexible(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 100, maxHeight: 100),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Image.asset(
-                  'assets/images/dashboard.png',
-                  width: 100,
-                  height: 100,
-                  fit: BoxFit.contain,
-                ),
-              ),
+          const SizedBox(width: 10),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 68, maxHeight: 68),
+            child: Image.asset(
+              'assets/images/dashboard.png',
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(
+                  Icons.emoji_events,
+                  color: AppColors.white,
+                  size: 60,
+                );
+              },
             ),
           ),
         ],
@@ -412,10 +408,7 @@ class _SectionHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          title,
-          style: AppTextStyles.titleMedium.copyWith(fontSize: 16),
-        ),
+        Text(title, style: AppTextStyles.titleMedium.copyWith(fontSize: 14)),
         TextButton(
           onPressed: onSeeAll,
           style: TextButton.styleFrom(
@@ -637,11 +630,7 @@ class _AnnouncementCard extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              color: AppColors.grey,
-              size: 20,
-            ),
+            const Icon(Icons.chevron_right, color: AppColors.grey, size: 20),
           ],
         ),
       ),
