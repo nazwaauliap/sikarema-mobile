@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sikarema_mobile/app/routes/app_routes.dart';
 import 'package:sikarema_mobile/app/theme/app_colors.dart';
 import 'package:sikarema_mobile/app/theme/app_text_styles.dart';
 import 'package:sikarema_mobile/features/dashboard/data/models/dashboard_model.dart';
@@ -198,6 +200,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         selectedLabelStyle: AppTextStyles.bodyMedium.copyWith(fontSize: 12),
         unselectedLabelStyle: AppTextStyles.bodyMedium.copyWith(fontSize: 12),
         onTap: (index) {
+          if (index == 1) {
+            // Navigasi ke halaman Prestasi Saya. Index bottom nav
+            // sengaja tidak diubah (tetap di Beranda) supaya saat
+            // kembali dari Prestasi, tampilan Dashboard tidak berubah.
+            context.push(AppRoutes.prestasi);
+            return;
+          }
           setState(() => _selectedIndex = index);
         },
         items: const [

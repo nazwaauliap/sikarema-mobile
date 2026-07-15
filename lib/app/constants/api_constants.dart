@@ -11,4 +11,7 @@ class ApiConstants {
 
   /// Endpoint dashboard mahasiswa.
   static const String dashboardEndpoint = '/dashboard';
+
+  /// Endpoint daftar prestasi mahasiswa.
+  static const String prestasiEndpoint = '/prestasi';
 }
