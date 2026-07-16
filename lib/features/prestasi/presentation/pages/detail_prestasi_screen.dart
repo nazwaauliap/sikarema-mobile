@@ -16,10 +16,11 @@ import 'package:sikarema_mobile/features/prestasi/data/services/prestasi_service
 ///   ditampilkan (menghindari data dummy/statis).
 /// - Section "Dokumen Pendukung" selalu tampil; jika file_sertifikat
 ///   null, ditampilkan kondisi kosong (bukan card dokumen).
-/// - Tombol "Ajukan Klaim Reward" hanya muncul jika status_verifikasi
-///   persis "Disetujui", dan masih disabled (placeholder).
-/// - Ilustrasi trofi memakai assets/images/prestasi.png, dengan
-///   fallback ke Icon jika asset belum tersedia.
+/// - Tombol "Ajukan Klaim Reward" muncul jika status_verifikasi
+///   "Disetujui" ATAU "Terverifikasi" (dianggap setara, case-insensitive),
+///   dan masih disabled (placeholder).
+/// - Ilustrasi trofi memakai assets/images/detail-prestasi-icon.png,
+///   dengan fallback ke Icon jika asset belum tersedia.
 /// =====================================================================
 
 class DetailPrestasiScreen extends StatefulWidget {
@@ -74,6 +75,14 @@ class _DetailPrestasiScreenState extends State<DetailPrestasiScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  /// Tombol "Ajukan Klaim Reward" dimunculkan jika status sudah
+  /// disetujui/terverifikasi (dianggap setara), tanpa memandang
+  /// besar-kecil huruf dari API.
+  bool _isKlaimEligible(String status) {
+    final normalized = status.toLowerCase();
+    return normalized == 'disetujui' || normalized == 'terverifikasi';
   }
 
   @override
@@ -131,7 +140,7 @@ class _DetailPrestasiScreenState extends State<DetailPrestasiScreen> {
             detail.fileSertifikatName != null
                 ? _DokumenCard(fileName: detail.fileSertifikatName!)
                 : const _DokumenEmptyState(),
-            if (detail.statusVerifikasi == 'Disetujui') ...[
+            if (_isKlaimEligible(detail.statusVerifikasi)) ...[
               const SizedBox(height: 24),
               const _AjukanKlaimButton(),
             ],
