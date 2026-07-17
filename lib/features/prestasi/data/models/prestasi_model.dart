@@ -183,3 +183,61 @@ class DetailPrestasiResponse {
   final String message;
   final DetailPrestasiModel data;
 }
+
+/// =====================================================================
+/// MASTER OPTION (untuk dropdown Kategori & Tingkat)
+/// =====================================================================
+/// Model generik dipakai untuk kedua dropdown karena strukturnya sama
+/// (id + label), baik untuk data statis placeholder maupun nanti API.
+class MasterOption {
+  const MasterOption({required this.id, required this.label});
+
+  final int id;
+  final String label;
+}
+
+/// =====================================================================
+/// CREATE PRESTASI (POST /api/v1/prestasi)
+/// =====================================================================
+class CreatePrestasiModel {
+  CreatePrestasiModel({
+    required this.idPrestasi,
+    required this.namaKegiatan,
+    required this.statusVerifikasi,
+  });
+
+  factory CreatePrestasiModel.fromJson(Map<String, dynamic> json) {
+    return CreatePrestasiModel(
+      idPrestasi: (json['id_prestasi'] as num?)?.toInt() ?? 0,
+      namaKegiatan: json['nama_kegiatan']?.toString() ?? '',
+      statusVerifikasi: json['status_verifikasi']?.toString() ?? '',
+    );
+  }
+
+  final int idPrestasi;
+  final String namaKegiatan;
+  final String statusVerifikasi;
+}
+
+/// Response wrapper untuk endpoint POST /api/v1/prestasi.
+class CreatePrestasiResponse {
+  CreatePrestasiResponse({
+    required this.success,
+    required this.message,
+    required this.data,
+  });
+
+  factory CreatePrestasiResponse.fromJson(Map<String, dynamic> json) {
+    return CreatePrestasiResponse(
+      success: json['success'] as bool? ?? false,
+      message: json['message']?.toString() ?? '',
+      data: CreatePrestasiModel.fromJson(
+        json['data'] as Map<String, dynamic>,
+      ),
+    );
+  }
+
+  final bool success;
+  final String message;
+  final CreatePrestasiModel data;
+}

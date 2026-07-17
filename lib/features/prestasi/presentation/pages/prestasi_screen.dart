@@ -129,12 +129,16 @@ class _PrestasiScreenState extends State<PrestasiScreen> {
           onPressed: () => Navigator.maybePop(context),
         ),
         title: Text('Prestasi Saya', style: AppTextStyles.titleMedium),
-        actions: [
+          actions: [
           IconButton(
             icon: const Icon(Icons.add, color: AppColors.primaryBlue),
-            onPressed: () {
-              // TODO(prestasi): Tambah Prestasi belum diimplementasikan
-              // pada tahap ini (di luar scope List Prestasi).
+            onPressed: () async {
+              final isSuccess = await context.push<bool>(
+                AppRoutes.tambahPrestasi,
+              );
+              if (isSuccess == true) {
+                _fetchPrestasi();
+              }
             },
           ),
         ],

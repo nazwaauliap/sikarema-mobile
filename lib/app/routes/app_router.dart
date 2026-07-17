@@ -7,6 +7,7 @@ import 'package:sikarema_mobile/features/auth/presentation/pages/welcome_screen.
 import 'package:sikarema_mobile/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:sikarema_mobile/features/prestasi/presentation/pages/detail_prestasi_screen.dart';
 import 'package:sikarema_mobile/features/prestasi/presentation/pages/prestasi_screen.dart';
+import 'package:sikarema_mobile/features/prestasi/presentation/pages/tambah_prestasi_screen.dart';
 
 class AppRouter {
   AppRouter._();
@@ -41,11 +42,26 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.prestasi,
         pageBuilder: (BuildContext context, GoRouterState state) {
-          // Tanpa animasi transisi, supaya perpindahan dari Dashboard
-          // terasa seperti berganti tab, bukan berpindah halaman.
           return CustomTransitionPage(
             key: state.pageKey,
             child: const PrestasiScreen(),
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return child;
+            },
+          );
+        },
+      ),
+      // PENTING: route statis '/prestasi/tambah' didaftarkan SEBELUM
+      // pattern dinamis '/prestasi/:id' agar tidak salah tertangkap
+      // sebagai id (mis. dianggap id = "tambah").
+      GoRoute(
+        path: AppRoutes.tambahPrestasi,
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: const TambahPrestasiScreen(),
             transitionDuration: Duration.zero,
             reverseTransitionDuration: Duration.zero,
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
