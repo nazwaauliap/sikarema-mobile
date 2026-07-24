@@ -207,6 +207,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             context.push(AppRoutes.prestasi);
             return;
           }
+          if (index == 2) {
+            // Navigasi ke Step 1 flow Klaim Reward (Pilih Prestasi).
+            // Index bottom nav sengaja tidak diubah, sama seperti pola
+            // navigasi ke Prestasi di atas.
+            context.push(AppRoutes.pilihPrestasiKlaim);
+            return;
+          }
           setState(() => _selectedIndex = index);
         },
         items: const [

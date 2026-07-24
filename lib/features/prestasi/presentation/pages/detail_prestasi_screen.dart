@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sikarema_mobile/app/routes/app_routes.dart';
 import 'package:sikarema_mobile/app/theme/app_colors.dart';
 import 'package:sikarema_mobile/app/theme/app_text_styles.dart';
 import 'package:sikarema_mobile/features/prestasi/data/models/prestasi_model.dart';
@@ -142,7 +144,13 @@ class _DetailPrestasiScreenState extends State<DetailPrestasiScreen> {
                 : const _DokumenEmptyState(),
             if (_isKlaimEligible(detail.statusVerifikasi)) ...[
               const SizedBox(height: 24),
-              const _AjukanKlaimButton(),
+              _AjukanKlaimButton(
+                onTap: () {
+                  context.push(
+                    AppRoutes.konfirmasiKlaimPath(detail.idPrestasi),
+                  );
+                },
+              ),
             ],
           ],
         ),
@@ -513,15 +521,20 @@ class _DokumenEmptyState extends StatelessWidget {
 /// =====================================================================
 /// Gaya gradient mengikuti warna yang sudah dipakai pada banner
 /// Dashboard (bukan warna baru), agar konsisten secara visual.
-/// Tombol masih disabled — fitur klaim reward belum diimplementasikan.
+/// Sudah aktif (bukan placeholder lagi) — menavigasi ke
+/// KonfirmasiKlaimScreen saat ditekan.
 class _AjukanKlaimButton extends StatelessWidget {
-  const _AjukanKlaimButton();
+  const _AjukanKlaimButton({required this.onTap});
+
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Opacity(
-      opacity: 0.6,
-      child: IgnorePointer(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 16),

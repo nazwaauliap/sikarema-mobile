@@ -14,4 +14,7 @@ class ApiConstants {
 
   /// Endpoint daftar prestasi mahasiswa.
   static const String prestasiEndpoint = '/prestasi';
+
+  /// Endpoint klaim reward (POST untuk mengajukan, GET untuk riwayat).
+  static const String klaimRewardEndpoint = '/klaim-reward';
 }
