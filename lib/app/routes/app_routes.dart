@@ -19,8 +19,11 @@ class AppRoutes {
   /// dipakai saat navigasi dari PrestasiScreen.
   static String prestasiDetailPath(int id) => '/prestasi/$id';
 
-  /// Step 1 flow Klaim Reward: Pilih Prestasi.
-  static const pilihPrestasiKlaim = '/klaim-reward/pilih-prestasi';
+  /// Landing Page Menu Klaim (diakses dari Bottom Navigation "Klaim").
+  /// Berisi penjelasan alur klaim + tombol menuju Step 1 (Pilih
+  /// Prestasi). TIDAK mengubah flow klaim yang sudah ada, hanya jadi
+  /// halaman perantara sebelum masuk ke pilihPrestasiKlaim.
+  static const klaimLanding = '/klaim-reward';
 
   /// Flow Klaim Reward dari Detail Prestasi: Konfirmasi Klaim.
   /// Pattern route, didaftarkan di GoRouter.

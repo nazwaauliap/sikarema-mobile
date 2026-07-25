@@ -208,10 +208,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             return;
           }
           if (index == 2) {
-            // Navigasi ke Step 1 flow Klaim Reward (Pilih Prestasi).
-            // Index bottom nav sengaja tidak diubah, sama seperti pola
-            // navigasi ke Prestasi di atas.
-            context.push(AppRoutes.pilihPrestasiKlaim);
+            // Navigasi ke Landing Page Menu Klaim. Flow Pilih Prestasi
+            // -> Konfirmasi -> Submit -> Success TIDAK berubah — landing
+            // page ini hanya perantara, tombolnya sendiri yang push ke
+            // AppRoutes.pilihPrestasiKlaim.
+            context.push(AppRoutes.klaimLanding);
             return;
           }
           setState(() => _selectedIndex = index);

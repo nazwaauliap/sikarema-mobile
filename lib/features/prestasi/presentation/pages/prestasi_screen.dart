@@ -101,7 +101,9 @@ class _PrestasiScreenState extends State<PrestasiScreen> {
   /// Index 0 (Beranda) -> kembali ke DashboardScreen (halaman ini dibuka
   /// dengan push di atas Dashboard, jadi cukup pop).
   /// Index 1 (Prestasi) -> sudah di halaman ini, tidak melakukan apa-apa.
-  /// Index 2 (Klaim) -> Step 1 flow Klaim Reward (Pilih Prestasi).
+  /// Index 2 (Klaim) -> Landing Page Menu Klaim (bukan langsung Pilih
+  /// Prestasi lagi; landing page-nya sendiri yang push ke
+  /// pilihPrestasiKlaim saat tombolnya ditekan).
   /// Index 3-4 (Riwayat/Akun) -> belum ada halamannya, placeholder.
   void _onBottomNavTap(int index) {
     switch (index) {
@@ -112,7 +114,7 @@ class _PrestasiScreenState extends State<PrestasiScreen> {
         // Sudah berada di halaman Prestasi.
         break;
       case 2:
-        context.push(AppRoutes.pilihPrestasiKlaim);
+        context.push(AppRoutes.klaimLanding);
         break;
       default:
         // TODO(prestasi): Riwayat/Akun belum diimplementasikan,

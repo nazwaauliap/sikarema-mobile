@@ -5,8 +5,8 @@ import 'package:sikarema_mobile/features/auth/presentation/pages/login_screen.da
 import 'package:sikarema_mobile/features/auth/presentation/pages/splash_screen.dart';
 import 'package:sikarema_mobile/features/auth/presentation/pages/welcome_screen.dart';
 import 'package:sikarema_mobile/features/dashboard/presentation/pages/dashboard_screen.dart';
+import 'package:sikarema_mobile/features/klaim_reward/presentation/pages/klaim_landing_screen.dart';
 import 'package:sikarema_mobile/features/klaim_reward/presentation/pages/konfirmasi_klaim_screen.dart';
-import 'package:sikarema_mobile/features/klaim_reward/presentation/pages/pilih_prestasi_klaim_screen.dart';
 import 'package:sikarema_mobile/features/prestasi/presentation/pages/detail_prestasi_screen.dart';
 import 'package:sikarema_mobile/features/prestasi/presentation/pages/prestasi_screen.dart';
 import 'package:sikarema_mobile/features/prestasi/presentation/pages/tambah_prestasi_screen.dart';
@@ -88,13 +88,13 @@ class AppRouter {
           );
         },
       ),
-      // Step 1 flow Klaim Reward: Pilih Prestasi.
+      // Landing Page Menu Klaim (Bottom Navigation "Klaim").
       GoRoute(
-        path: AppRoutes.pilihPrestasiKlaim,
+        path: AppRoutes.klaimLanding,
         pageBuilder: (BuildContext context, GoRouterState state) {
           return CustomTransitionPage(
             key: state.pageKey,
-            child: const PilihPrestasiKlaimScreen(),
+            child: const KlaimLandingScreen(),
             transitionDuration: Duration.zero,
             reverseTransitionDuration: Duration.zero,
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
