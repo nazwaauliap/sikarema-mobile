@@ -10,18 +10,45 @@ class KlaimRewardService {
 
   final Dio _dio;
 
+  /// Mengambil daftar jenis reward (Master Data) dari Laravel API,
+  /// dipakai untuk dropdown "Jenis Reward" pada Konfirmasi Klaim.
+  Future<JenisRewardResponse> getJenisRewardList() async {
+    final token = await StorageService().getToken();
+
+    final response = await _dio.get(
+      ApiConstants.jenisRewardEndpoint,
+      options: Options(
+        headers: {
+          if (token != null && token.isNotEmpty)
+            'Authorization': 'Bearer $token',
+          'ngrok-skip-browser-warning': 'true',
+        },
+      ),
+    );
+
+    return JenisRewardResponse.fromJson(
+      response.data as Map<String, dynamic>,
+    );
+  }
+
   /// Mengajukan klaim reward untuk satu prestasi ke Laravel API.
-  /// Body request HANYA { "id_prestasi": idPrestasi } — tidak ada field
-  /// lain (tidak ada upload, rekening, periode, atau reward), karena
-  /// backend menentukan semuanya secara otomatis.
+  /// Body request { "id_prestasi", "id_periode", "id_reward" } sesuai
+  /// kontrak API sungguhan (dikonfirmasi lewat Postman + pengecekan
+  /// database oleh pemilik project).
   Future<SubmitKlaimRewardResponse> submitKlaimReward({
     required int idPrestasi,
+    required int idPeriode,
+    required int idReward,
   }) async {
     final token = await StorageService().getToken();
 
     final response = await _dio.post(
       ApiConstants.klaimRewardEndpoint,
-      data: {'id_prestasi': idPrestasi},
+      data: {
+        'id_prestasi': idPrestasi,
+        'id_periode': idPeriode,
+        'id_reward': idReward,
+      },
       options: Options(
         headers: {
           if (token != null && token.isNotEmpty)

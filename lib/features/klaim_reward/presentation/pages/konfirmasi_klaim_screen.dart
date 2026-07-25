@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:sikarema_mobile/app/theme/app_colors.dart';
 import 'package:sikarema_mobile/app/theme/app_text_styles.dart';
+import 'package:sikarema_mobile/features/klaim_reward/data/models/klaim_reward_model.dart';
+import 'package:sikarema_mobile/features/klaim_reward/data/services/klaim_reward_master_service.dart';
 import 'package:sikarema_mobile/features/klaim_reward/data/services/klaim_reward_service.dart';
 import 'package:sikarema_mobile/features/prestasi/data/models/prestasi_model.dart';
 import 'package:sikarema_mobile/features/prestasi/data/services/prestasi_service.dart';
@@ -13,23 +15,34 @@ import 'package:sikarema_mobile/features/prestasi/data/services/prestasi_service
 /// Catatan:
 /// - SENGAJA memakai ulang PrestasiService.getPrestasiById() &
 ///   DetailPrestasiModel yang sudah ada (bukan service/model baru),
-///   karena field yang perlu ditampilkan di sini (nama, tingkat,
-///   kategori, tahun, penyelenggara) persis sama dengan data yang
-///   sudah diambil GET /api/v1/prestasi/{id} untuk halaman Detail
-///   Prestasi.
-/// - Backend TIDAK mendukung dropdown periode/reward/upload/rekening
-///   pada endpoint klaim (lihat catatan project), jadi field tersebut
-///   sengaja tidak ditampilkan di sini — hanya info text yang
-///   menjelaskan bahwa periode & reward ditentukan otomatis sistem.
-/// - STEP 2: Tombol "Ajukan Klaim" sudah memanggil
-///   POST /klaim-reward via KlaimRewardService, dengan body HANYA
-///   { "id_prestasi": idPrestasi } sesuai Postman Collection.
-/// - Saat request berlangsung, tombol menampilkan loading dan
-///   dinonaktifkan (mencegah submit ganda).
-/// - Navigasi ke halaman Success BELUM diimplementasikan (itu tahap
-///   berikutnya, menunggu review) — untuk sementara hasil sukses/gagal
-///   ditampilkan lewat SnackBar, konsisten dengan pola error handling
-///   DioException yang sudah dipakai di PrestasiService/DetailPrestasi.
+///   karena field ringkasan prestasi (nama, tingkat, kategori, tahun,
+///   penyelenggara) persis sama dengan data yang sudah diambil
+///   GET /api/v1/prestasi/{id} untuk halaman Detail Prestasi.
+/// - Kontrak API POST /klaim-reward SUDAH DIKONFIRMASI (via Postman +
+///   pengecekan database oleh pemilik project) mewajibkan 3 field:
+///   id_prestasi, id_periode, id_reward. Spesifikasi awal ("tidak ada
+///   field lain") ternyata tidak sesuai backend sungguhan, jadi info
+///   box "ditentukan otomatis" pada versi sebelumnya DIHAPUS dan
+///   diganti 2 dropdown pilihan (Periode & Jenis Reward).
+/// - Jenis Reward diambil dari API sungguhan: GET /jenis-reward
+///   (via KlaimRewardService.getJenisRewardList()).
+/// - Periode Klaim memakai DATA STATIS (KlaimRewardMasterService),
+///   karena backend TIDAK punya endpoint API untuk daftar periode
+///   (hanya ada route web admin, bukan API mobile) — nilai id & label
+///   diambil dari isi tabel `periode_klaims` di database sungguhan,
+///   dikonfirmasi oleh pemilik project, bukan tebakan.
+/// - Reward yang tingkatnya cocok dengan tingkat prestasi (field
+///   `tingkat` pada JenisRewardModel vs `detail.tingkat`) otomatis
+///   dipilihkan sebagai default (bisa diganti manual oleh mahasiswa).
+///   Periode tidak di-default-kan (tidak ada sinyal data yang relevan
+///   untuk menentukan pilihan otomatis), mahasiswa wajib memilih.
+/// - Tombol "Ajukan Klaim" disabled selama Periode & Jenis Reward
+///   belum dipilih, dan menampilkan loading + disabled saat request
+///   POST /klaim-reward sedang berlangsung (mencegah submit ganda).
+/// - Navigasi ke halaman Success BELUM diimplementasikan (tahap
+///   berikutnya, menunggu review) — hasil sukses/gagal masih lewat
+///   SnackBar, konsisten dengan pola error handling DioException yang
+///   sudah dipakai di PrestasiService/DetailPrestasiScreen.
 /// =====================================================================
 
 class KonfirmasiKlaimScreen extends StatefulWidget {
@@ -44,40 +57,71 @@ class KonfirmasiKlaimScreen extends StatefulWidget {
 class _KonfirmasiKlaimScreenState extends State<KonfirmasiKlaimScreen> {
   final PrestasiService _prestasiService = PrestasiService();
   final KlaimRewardService _klaimRewardService = KlaimRewardService();
+  final KlaimRewardMasterService _klaimRewardMasterService =
+      KlaimRewardMasterService();
 
   bool _isLoading = true;
   String? _errorMessage;
   DetailPrestasiModel? _detail;
+
+  List<MasterOption> _periodeList = [];
+  List<JenisRewardModel> _rewardList = [];
+
+  MasterOption? _selectedPeriode;
+  JenisRewardModel? _selectedReward;
 
   bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    _fetchDetail();
+    _fetchInitialData();
   }
 
-  Future<void> _fetchDetail() async {
+  Future<void> _fetchInitialData() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      final response = await _prestasiService.getPrestasiById(
-        widget.idPrestasi,
-      );
+      final results = await Future.wait([
+        _prestasiService.getPrestasiById(widget.idPrestasi),
+        _klaimRewardService.getJenisRewardList(),
+        _klaimRewardMasterService.getPeriodeList(),
+      ]);
+
       if (!mounted) return;
+
+      final detail =
+          (results[0] as DetailPrestasiResponse).data;
+      final rewardList = (results[1] as JenisRewardResponse).data;
+      final periodeList = results[2] as List<MasterOption>;
+
+      // Default pilih reward yang tingkatnya cocok dengan tingkat
+      // prestasi (case-insensitive), jika ada. Mahasiswa tetap bisa
+      // mengganti pilihan secara manual.
+      JenisRewardModel? defaultReward;
+      for (final reward in rewardList) {
+        if (reward.tingkat.toLowerCase() == detail.tingkat.toLowerCase()) {
+          defaultReward = reward;
+          break;
+        }
+      }
+
       setState(() {
-        _detail = response.data;
+        _detail = detail;
+        _rewardList = rewardList;
+        _periodeList = periodeList;
+        _selectedReward = defaultReward;
         _isLoading = false;
       });
     } on DioException catch (e) {
       if (!mounted) return;
       final message = e.response?.data is Map<String, dynamic>
           ? (e.response?.data['message']?.toString() ??
-                'Gagal memuat data prestasi.')
-          : 'Terjadi kesalahan saat memuat data prestasi.';
+                'Gagal memuat data.')
+          : 'Terjadi kesalahan saat memuat data.';
       setState(() {
         _errorMessage = message;
         _isLoading = false;
@@ -85,15 +129,15 @@ class _KonfirmasiKlaimScreenState extends State<KonfirmasiKlaimScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = 'Terjadi kesalahan saat memuat data prestasi.';
+        _errorMessage = 'Terjadi kesalahan saat memuat data.';
         _isLoading = false;
       });
     }
   }
 
-  /// STEP 2: memanggil POST /klaim-reward via KlaimRewardService.
-  /// Body HANYA { "id_prestasi": idPrestasi }, sesuai Postman Collection
-  /// (backend menentukan periode & reward otomatis).
+  /// STEP 2: memanggil POST /klaim-reward via KlaimRewardService, dengan
+  /// { id_prestasi, id_periode, id_reward } sesuai kontrak API
+  /// sungguhan.
   ///
   /// TODO(klaim_reward): navigasi ke halaman Success belum
   /// diimplementasikan — menunggu review Step 2 sebelum lanjut ke tahap
@@ -101,11 +145,25 @@ class _KonfirmasiKlaimScreenState extends State<KonfirmasiKlaimScreen> {
   Future<void> _onAjukanKlaim() async {
     if (_isSubmitting) return;
 
+    final periode = _selectedPeriode;
+    final reward = _selectedReward;
+    if (periode == null || reward == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pilih Periode Klaim dan Jenis Reward terlebih dahulu.'),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isSubmitting = true);
 
     try {
       final response = await _klaimRewardService.submitKlaimReward(
         idPrestasi: widget.idPrestasi,
+        idPeriode: periode.id,
+        idReward: reward.idReward,
       );
       if (!mounted) return;
 
@@ -193,18 +251,54 @@ class _KonfirmasiKlaimScreenState extends State<KonfirmasiKlaimScreen> {
       return _buildEmptyState();
     }
 
+    final canSubmit = _selectedPeriode != null && _selectedReward != null;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _PrestasiSummaryCard(detail: detail),
+          const SizedBox(height: 20),
+          Text(
+            'Periode Klaim',
+            style: AppTextStyles.bodyMedium.copyWith(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.black,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _DropdownField<MasterOption>(
+            hint: 'Pilih periode klaim',
+            value: _selectedPeriode,
+            items: _periodeList,
+            labelBuilder: (item) => item.label,
+            onChanged: (value) => setState(() => _selectedPeriode = value),
+          ),
           const SizedBox(height: 16),
-          const _AutoInfoBox(),
+          Text(
+            'Jenis Reward yang Diajukan',
+            style: AppTextStyles.bodyMedium.copyWith(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.black,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _DropdownField<JenisRewardModel>(
+            hint: 'Pilih jenis reward',
+            value: _selectedReward,
+            items: _rewardList,
+            labelBuilder: (item) =>
+                '${item.namaReward} (${item.nominalFormatted})',
+            onChanged: (value) => setState(() => _selectedReward = value),
+          ),
           const SizedBox(height: 24),
           _AjukanKlaimButton(
             onTap: _onAjukanKlaim,
             isSubmitting: _isSubmitting,
+            isEnabled: canSubmit,
           ),
         ],
       ),
@@ -251,7 +345,7 @@ class _KonfirmasiKlaimScreenState extends State<KonfirmasiKlaimScreen> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _fetchDetail,
+              onPressed: _fetchInitialData,
               child: const Text('Coba Lagi'),
             ),
           ],
@@ -387,40 +481,60 @@ class _InfoItem extends StatelessWidget {
 }
 
 /// =====================================================================
-/// INFO BOX: Periode & Reward ditentukan otomatis sistem
+/// DROPDOWN FIELD GENERIK (Periode Klaim & Jenis Reward)
 /// =====================================================================
-class _AutoInfoBox extends StatelessWidget {
-  const _AutoInfoBox();
+/// Styling rounded + border abu-abu tipis, konsisten dengan gaya field
+/// input pada LoginScreen (border radius 16, border grey.shade300).
+class _DropdownField<T> extends StatelessWidget {
+  const _DropdownField({
+    required this.hint,
+    required this.value,
+    required this.items,
+    required this.labelBuilder,
+    required this.onChanged,
+    super.key,
+  });
+
+  final String hint;
+  final T? value;
+  final List<T> items;
+  final String Function(T item) labelBuilder;
+  final ValueChanged<T?> onChanged;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
-        color: AppColors.primaryBlue.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade300),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(
-            Icons.info_outline_rounded,
-            color: AppColors.primaryBlue,
-            size: 20,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Periode dan Reward akan ditentukan otomatis oleh sistem '
-              'setelah klaim diproses.',
-              style: AppTextStyles.bodyMedium.copyWith(
-                fontSize: 12.5,
-                color: AppColors.primaryBlue,
-                height: 1.4,
-              ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<T>(
+          value: value,
+          isExpanded: true,
+          hint: Text(
+            hint,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: Colors.grey.shade400,
+              fontSize: 13,
             ),
           ),
-        ],
+          icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey.shade500),
+          items: items
+              .map(
+                (item) => DropdownMenuItem<T>(
+                  value: item,
+                  child: Text(
+                    labelBuilder(item),
+                    style: AppTextStyles.bodyMedium.copyWith(fontSize: 13),
+                  ),
+                ),
+              )
+              .toList(),
+          onChanged: onChanged,
+        ),
       ),
     );
   }
@@ -431,24 +545,30 @@ class _AutoInfoBox extends StatelessWidget {
 /// =====================================================================
 /// Gaya gradient mengikuti tombol "Ajukan Klaim Reward" di Detail
 /// Prestasi, agar konsisten secara visual antar halaman flow klaim.
-/// Menampilkan loading spinner & dinonaktifkan saat request sedang
-/// berlangsung (mencegah submit ganda).
+/// - isEnabled=false: tombol pudar & tidak bisa ditekan (Periode/Reward
+///   belum dipilih).
+/// - isSubmitting=true: tombol menampilkan loading spinner & dinon-
+///   aktifkan sementara (mencegah submit ganda).
 class _AjukanKlaimButton extends StatelessWidget {
   const _AjukanKlaimButton({
     required this.onTap,
     required this.isSubmitting,
+    required this.isEnabled,
   });
 
   final VoidCallback onTap;
   final bool isSubmitting;
+  final bool isEnabled;
 
   @override
   Widget build(BuildContext context) {
+    final isDisabled = isSubmitting || !isEnabled;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: isSubmitting ? null : onTap,
+        onTap: isDisabled ? null : onTap,
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -457,13 +577,13 @@ class _AjukanKlaimButton extends StatelessWidget {
             gradient: LinearGradient(
               colors: [
                 const Color(0xFF2563EB).withValues(
-                  alpha: isSubmitting ? 0.6 : 1,
+                  alpha: isDisabled ? 0.5 : 1,
                 ),
                 const Color(0xFF0EA5E9).withValues(
-                  alpha: isSubmitting ? 0.6 : 1,
+                  alpha: isDisabled ? 0.5 : 1,
                 ),
                 const Color(0xFF10B981).withValues(
-                  alpha: isSubmitting ? 0.6 : 1,
+                  alpha: isDisabled ? 0.5 : 1,
                 ),
               ],
               begin: Alignment.centerLeft,

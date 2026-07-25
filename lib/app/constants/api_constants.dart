@@ -17,4 +17,8 @@ class ApiConstants {
 
   /// Endpoint klaim reward (POST untuk mengajukan, GET untuk riwayat).
   static const String klaimRewardEndpoint = '/klaim-reward';
+
+  /// Endpoint daftar jenis reward (Master Data), dipakai untuk dropdown
+  /// "Jenis Reward" pada Konfirmasi Klaim.
+  static const String jenisRewardEndpoint = '/jenis-reward';
 }
