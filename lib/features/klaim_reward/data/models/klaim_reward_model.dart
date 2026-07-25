@@ -1,3 +1,5 @@
+import 'package:sikarema_mobile/core/helpers/format_helper.dart';
+
 /// =====================================================================
 /// JENIS REWARD (GET /jenis-reward)
 /// =====================================================================
@@ -32,20 +34,7 @@ class JenisRewardModel {
   final String tingkat;
 
   /// Format nominal ("500000.00") menjadi "Rp500.000" untuk tampilan.
-  String get nominalFormatted {
-    final value = double.tryParse(nominal) ?? 0;
-    final intValue = value.round();
-    final str = intValue.toString();
-    final buffer = StringBuffer();
-    for (var i = 0; i < str.length; i++) {
-      final posFromEnd = str.length - i;
-      buffer.write(str[i]);
-      if (posFromEnd > 1 && posFromEnd % 3 == 1) {
-        buffer.write('.');
-      }
-    }
-    return 'Rp$buffer';
-  }
+  String get nominalFormatted => FormatHelper.rupiah(nominal);
 }
 
 /// Response wrapper untuk endpoint GET /jenis-reward.
@@ -99,4 +88,74 @@ class SubmitKlaimRewardResponse {
 
   final bool success;
   final String message;
+}
+
+/// =====================================================================
+/// RIWAYAT KLAIM (GET /klaim-reward)
+/// =====================================================================
+/// Field mengikuti persis response Postman Collection:
+/// { id_klaim, prestasi, reward, periode, tanggal_pengajuan,
+///   status_klaim, catatan }.
+///
+/// CATATAN soal nominal reward: response GET /klaim-reward TIDAK
+/// menyertakan nominal (hanya nama reward berupa String, mis.
+/// "Reward Tingkat Nasional"). Nominal untuk tampilan "Rp750.000"
+/// SENGAJA tidak ditaruh di model ini (tidak "mengarang" field) —
+/// RiwayatKlaimScreen mencocokkan `reward` di sini dengan `namaReward`
+/// dari GET /jenis-reward (endpoint sungguhan yang sudah ada) untuk
+/// mendapatkan nominal aslinya. Jika nama reward tidak cocok dengan
+/// data master, nominal cukup tidak ditampilkan (bukan ditebak).
+class RiwayatKlaimModel {
+  RiwayatKlaimModel({
+    required this.idKlaim,
+    required this.prestasi,
+    required this.reward,
+    required this.periode,
+    required this.tanggalPengajuan,
+    required this.statusKlaim,
+    required this.catatan,
+  });
+
+  factory RiwayatKlaimModel.fromJson(Map<String, dynamic> json) {
+    return RiwayatKlaimModel(
+      idKlaim: (json['id_klaim'] as num?)?.toInt() ?? 0,
+      prestasi: json['prestasi']?.toString() ?? '',
+      reward: json['reward']?.toString() ?? '',
+      periode: json['periode']?.toString() ?? '',
+      tanggalPengajuan: json['tanggal_pengajuan']?.toString() ?? '',
+      statusKlaim: json['status_klaim']?.toString() ?? '',
+      catatan: json['catatan']?.toString() ?? '',
+    );
+  }
+
+  final int idKlaim;
+  final String prestasi;
+  final String reward;
+  final String periode;
+  final String tanggalPengajuan;
+  final String statusKlaim;
+  final String catatan;
+}
+
+/// Response wrapper untuk endpoint GET /klaim-reward.
+class RiwayatKlaimResponse {
+  RiwayatKlaimResponse({
+    required this.success,
+    required this.message,
+    required this.data,
+  });
+
+  factory RiwayatKlaimResponse.fromJson(Map<String, dynamic> json) {
+    return RiwayatKlaimResponse(
+      success: json['success'] as bool? ?? false,
+      message: json['message']?.toString() ?? '',
+      data: (json['data'] as List<dynamic>? ?? [])
+          .map((e) => RiwayatKlaimModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  final bool success;
+  final String message;
+  final List<RiwayatKlaimModel> data;
 }

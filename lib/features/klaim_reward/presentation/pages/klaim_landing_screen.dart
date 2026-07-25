@@ -24,8 +24,8 @@ import 'package:sikarema_mobile/app/theme/app_text_styles.dart';
 /// arsitektur yang sudah ada, bukan pola baru.
 ///
 /// Styling body reuse pola yang sudah dipakai di KonfirmasiKlaimScreen
-/// (Scaffold backgroundColor #F5F6F8, card putih rounded 16 + shadow tipis,
-/// info box primaryBlue alpha 0.08
+/// (Scaffold backgroundColor #F5F6F8, AppBar putih elevation 0, card
+/// putih rounded 16 + shadow tipis, info box primaryBlue alpha 0.08
 /// rounded 14, tombol gradient primaryBlue -> secondaryGreen rounded
 /// 14) supaya konsisten secara visual dengan halaman lain di fitur
 /// Klaim Reward.
@@ -60,24 +60,30 @@ class KlaimLandingScreen extends StatelessWidget {
   ];
 
   /// Handle tap pada bottom navigation bar.
-  /// Index 0 (Beranda) -> DashboardScreen.
+  /// Index 0 (Beranda) -> kembali ke DashboardScreen (halaman ini dibuka
+  /// dengan push di atas Dashboard, jadi cukup pop), sama seperti pola
+  /// di PrestasiScreen.
   /// Index 1 (Prestasi) -> push ke halaman Prestasi Saya.
   /// Index 2 (Klaim) -> sudah di halaman ini, tidak melakukan apa-apa.
-  /// Index 3-4 (Riwayat/Akun) -> belum ada halamannya, placeholder.
+  /// Index 3 (Riwayat) -> Riwayat Klaim.
+  /// Index 4 (Akun) -> belum ada halamannya, placeholder.
   void _onBottomNavTap(BuildContext context, int index) {
     switch (index) {
       case 0:
-        context.go(AppRoutes.dashboard);
+        Navigator.maybePop(context);
         break;
       case 1:
-        context.go(AppRoutes.prestasi);
+        context.push(AppRoutes.prestasi);
         break;
       case 2:
         // Sudah berada di halaman Klaim.
         break;
+      case 3:
+        context.push(AppRoutes.riwayatKlaim);
+        break;
       default:
-        // TODO(klaim_reward): Riwayat/Akun belum diimplementasikan, di
-        // luar scope Landing Page Klaim saat ini.
+        // TODO(klaim_reward): Akun belum diimplementasikan, di luar
+        // scope Landing Page Klaim saat ini.
         break;
     }
   }
@@ -395,11 +401,7 @@ class _AjukanKlaimSekarangButton extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
             gradient: const LinearGradient(
-              colors: [
-                Color(0xFF2563EB),
-                Color(0xFF0EA5E9),
-                Color(0xFF10B981),
-              ],
+              colors: [Color(0xFF2563EB), Color(0xFF0EA5E9), Color(0xFF10B981)],
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
             ),

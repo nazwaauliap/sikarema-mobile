@@ -62,4 +62,25 @@ class KlaimRewardService {
       response.data as Map<String, dynamic>,
     );
   }
+
+  /// Mengambil riwayat pengajuan klaim reward milik mahasiswa yang
+  /// sedang login (GET /klaim-reward), dipakai oleh RiwayatKlaimScreen.
+  Future<RiwayatKlaimResponse> getRiwayatKlaim() async {
+    final token = await StorageService().getToken();
+
+    final response = await _dio.get(
+      ApiConstants.klaimRewardEndpoint,
+      options: Options(
+        headers: {
+          if (token != null && token.isNotEmpty)
+            'Authorization': 'Bearer $token',
+          'ngrok-skip-browser-warning': 'true',
+        },
+      ),
+    );
+
+    return RiwayatKlaimResponse.fromJson(
+      response.data as Map<String, dynamic>,
+    );
+  }
 }

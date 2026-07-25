@@ -7,6 +7,8 @@ import 'package:sikarema_mobile/features/auth/presentation/pages/welcome_screen.
 import 'package:sikarema_mobile/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:sikarema_mobile/features/klaim_reward/presentation/pages/klaim_landing_screen.dart';
 import 'package:sikarema_mobile/features/klaim_reward/presentation/pages/konfirmasi_klaim_screen.dart';
+import 'package:sikarema_mobile/features/klaim_reward/presentation/pages/pilih_prestasi_klaim_screen.dart';
+import 'package:sikarema_mobile/features/klaim_reward/presentation/pages/riwayat_klaim_screen.dart';
 import 'package:sikarema_mobile/features/prestasi/presentation/pages/detail_prestasi_screen.dart';
 import 'package:sikarema_mobile/features/prestasi/presentation/pages/prestasi_screen.dart';
 import 'package:sikarema_mobile/features/prestasi/presentation/pages/tambah_prestasi_screen.dart';
@@ -37,15 +39,8 @@ class AppRouter {
       ),
       GoRoute(
         path: AppRoutes.dashboard,
-        pageBuilder: (BuildContext context, GoRouterState state) {
-          return CustomTransitionPage(
-            key: state.pageKey,
-            child: const DashboardScreen(),
-            transitionDuration: Duration.zero,
-            reverseTransitionDuration: Duration.zero,
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) => child,
-          );
+        builder: (BuildContext context, GoRouterState state) {
+          return DashboardScreen();
         },
       ),
       GoRoute(
@@ -110,6 +105,21 @@ class AppRouter {
           );
         },
       ),
+      // Step 1 flow Klaim Reward: Pilih Prestasi.
+      GoRoute(
+        path: AppRoutes.pilihPrestasiKlaim,
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: const PilihPrestasiKlaimScreen(),
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return child;
+            },
+          );
+        },
+      ),
       // Flow Klaim Reward dari Detail Prestasi: Konfirmasi Klaim.
       GoRoute(
         path: AppRoutes.konfirmasiKlaim,
@@ -119,6 +129,21 @@ class AppRouter {
           return CustomTransitionPage(
             key: state.pageKey,
             child: KonfirmasiKlaimScreen(idPrestasi: idPrestasi),
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return child;
+            },
+          );
+        },
+      ),
+      // Riwayat Klaim (Bottom Navigation "Riwayat").
+      GoRoute(
+        path: AppRoutes.riwayatKlaim,
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: const RiwayatKlaimScreen(),
             transitionDuration: Duration.zero,
             reverseTransitionDuration: Duration.zero,
             transitionsBuilder: (context, animation, secondaryAnimation, child) {

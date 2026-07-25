@@ -24,6 +24,8 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  int _selectedIndex = 0;
+
   final DashboardService _dashboardService = DashboardService();
 
   bool _isLoading = true;
@@ -192,24 +194,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        currentIndex: 0,
+        currentIndex: _selectedIndex,
         selectedItemColor: AppColors.primaryBlue,
         unselectedItemColor: AppColors.grey,
         selectedLabelStyle: AppTextStyles.bodyMedium.copyWith(fontSize: 12),
         unselectedLabelStyle: AppTextStyles.bodyMedium.copyWith(fontSize: 12),
         onTap: (index) {
-          switch (index) {
-            case 1:
-              context.go(AppRoutes.prestasi);
-              break;
-            case 2:
-              context.go(AppRoutes.klaimLanding);
-              break;
-            default:
-              // Route Riwayat dan Akun belum tersedia. Jangan ubah tab
-              // aktif sebelum ada halaman tujuan yang dapat dibuka.
-              break;
+          if (index == 1) {
+            // Navigasi ke halaman Prestasi Saya. Index bottom nav
+            // sengaja tidak diubah (tetap di Beranda) supaya saat
+            // kembali dari Prestasi, tampilan Dashboard tidak berubah.
+            context.push(AppRoutes.prestasi);
+            return;
           }
+          if (index == 2) {
+            // Navigasi ke Landing Page Menu Klaim. Flow Pilih Prestasi
+            // -> Konfirmasi -> Submit -> Success TIDAK berubah — landing
+            // page ini hanya perantara, tombolnya sendiri yang push ke
+            // AppRoutes.pilihPrestasiKlaim.
+            context.push(AppRoutes.klaimLanding);
+            return;
+          }
+          if (index == 3) {
+            // Navigasi ke Riwayat Klaim.
+            context.push(AppRoutes.riwayatKlaim);
+            return;
+          }
+          setState(() => _selectedIndex = index);
         },
         items: const [
           BottomNavigationBarItem(

@@ -25,6 +25,9 @@ class AppRoutes {
   /// halaman perantara sebelum masuk ke pilihPrestasiKlaim.
   static const klaimLanding = '/klaim-reward';
 
+  /// Step 1 flow Klaim Reward: Pilih Prestasi.
+  static const pilihPrestasiKlaim = '/klaim-reward/pilih-prestasi';
+
   /// Flow Klaim Reward dari Detail Prestasi: Konfirmasi Klaim.
   /// Pattern route, didaftarkan di GoRouter.
   static const konfirmasiKlaim = '/klaim-reward/konfirmasi/:id';
@@ -33,4 +36,9 @@ class AppRoutes {
   /// sungguhan, dipakai saat navigasi dari DetailPrestasiScreen.
   static String konfirmasiKlaimPath(int idPrestasi) =>
       '/klaim-reward/konfirmasi/$idPrestasi';
+
+  /// Riwayat Klaim (diakses dari Bottom Navigation "Riwayat").
+  /// Menampilkan daftar riwayat pengajuan klaim reward via
+  /// GET /klaim-reward.
+  static const riwayatKlaim = '/klaim-reward/riwayat';
 }
