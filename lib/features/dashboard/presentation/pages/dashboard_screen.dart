@@ -24,8 +24,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  int _selectedIndex = 0;
-
   final DashboardService _dashboardService = DashboardService();
 
   bool _isLoading = true;
@@ -194,28 +192,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        currentIndex: _selectedIndex,
+        currentIndex: 0,
         selectedItemColor: AppColors.primaryBlue,
         unselectedItemColor: AppColors.grey,
         selectedLabelStyle: AppTextStyles.bodyMedium.copyWith(fontSize: 12),
         unselectedLabelStyle: AppTextStyles.bodyMedium.copyWith(fontSize: 12),
         onTap: (index) {
-          if (index == 1) {
-            // Navigasi ke halaman Prestasi Saya. Index bottom nav
-            // sengaja tidak diubah (tetap di Beranda) supaya saat
-            // kembali dari Prestasi, tampilan Dashboard tidak berubah.
-            context.push(AppRoutes.prestasi);
-            return;
+          switch (index) {
+            case 1:
+              context.go(AppRoutes.prestasi);
+              break;
+            case 2:
+              context.go(AppRoutes.klaimLanding);
+              break;
+            default:
+              // Route Riwayat dan Akun belum tersedia. Jangan ubah tab
+              // aktif sebelum ada halaman tujuan yang dapat dibuka.
+              break;
           }
-          if (index == 2) {
-            // Navigasi ke Landing Page Menu Klaim. Flow Pilih Prestasi
-            // -> Konfirmasi -> Submit -> Success TIDAK berubah — landing
-            // page ini hanya perantara, tombolnya sendiri yang push ke
-            // AppRoutes.pilihPrestasiKlaim.
-            context.push(AppRoutes.klaimLanding);
-            return;
-          }
-          setState(() => _selectedIndex = index);
         },
         items: const [
           BottomNavigationBarItem(

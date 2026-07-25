@@ -60,19 +60,17 @@ class KlaimLandingScreen extends StatelessWidget {
   ];
 
   /// Handle tap pada bottom navigation bar.
-  /// Index 0 (Beranda) -> kembali ke DashboardScreen (halaman ini dibuka
-  /// dengan push di atas Dashboard, jadi cukup pop), sama seperti pola
-  /// di PrestasiScreen.
+  /// Index 0 (Beranda) -> DashboardScreen.
   /// Index 1 (Prestasi) -> push ke halaman Prestasi Saya.
   /// Index 2 (Klaim) -> sudah di halaman ini, tidak melakukan apa-apa.
   /// Index 3-4 (Riwayat/Akun) -> belum ada halamannya, placeholder.
   void _onBottomNavTap(BuildContext context, int index) {
     switch (index) {
       case 0:
-        Navigator.maybePop(context);
+        context.go(AppRoutes.dashboard);
         break;
       case 1:
-        context.push(AppRoutes.prestasi);
+        context.go(AppRoutes.prestasi);
         break;
       case 2:
         // Sudah berada di halaman Klaim.

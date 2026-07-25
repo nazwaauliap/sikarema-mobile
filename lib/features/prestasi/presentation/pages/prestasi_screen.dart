@@ -98,8 +98,7 @@ class _PrestasiScreenState extends State<PrestasiScreen> {
   }
 
   /// Handle tap pada bottom navigation bar.
-  /// Index 0 (Beranda) -> kembali ke DashboardScreen (halaman ini dibuka
-  /// dengan push di atas Dashboard, jadi cukup pop).
+  /// Index 0 (Beranda) -> DashboardScreen.
   /// Index 1 (Prestasi) -> sudah di halaman ini, tidak melakukan apa-apa.
   /// Index 2 (Klaim) -> Landing Page Menu Klaim (bukan langsung Pilih
   /// Prestasi lagi; landing page-nya sendiri yang push ke
@@ -108,13 +107,13 @@ class _PrestasiScreenState extends State<PrestasiScreen> {
   void _onBottomNavTap(int index) {
     switch (index) {
       case 0:
-        Navigator.maybePop(context);
+        context.go(AppRoutes.dashboard);
         break;
       case 1:
         // Sudah berada di halaman Prestasi.
         break;
       case 2:
-        context.push(AppRoutes.klaimLanding);
+        context.go(AppRoutes.klaimLanding);
         break;
       default:
         // TODO(prestasi): Riwayat/Akun belum diimplementasikan,

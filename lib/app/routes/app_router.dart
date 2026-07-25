@@ -37,8 +37,15 @@ class AppRouter {
       ),
       GoRoute(
         path: AppRoutes.dashboard,
-        builder: (BuildContext context, GoRouterState state) {
-          return DashboardScreen();
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: const DashboardScreen(),
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) => child,
+          );
         },
       ),
       GoRoute(
