@@ -21,4 +21,10 @@ class ApiConstants {
   /// Endpoint daftar jenis reward (Master Data), dipakai untuk dropdown
   /// "Jenis Reward" pada Konfirmasi Klaim.
   static const String jenisRewardEndpoint = '/jenis-reward';
+
+  /// Endpoint profil mahasiswa yang sedang login, dipakai halaman Akun.
+  static const String profileEndpoint = '/profile';
+
+  /// Endpoint logout Sanctum, dipakai tombol Keluar di halaman Akun.
+  static const String logoutEndpoint = '/logout';
 }

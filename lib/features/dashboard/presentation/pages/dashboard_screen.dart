@@ -220,6 +220,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             context.push(AppRoutes.riwayatKlaim);
             return;
           }
+          if (index == 4) {
+            context.push(AppRoutes.akun);
+            return;
+          }
           setState(() => _selectedIndex = index);
         },
         items: const [

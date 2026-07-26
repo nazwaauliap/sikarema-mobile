@@ -12,6 +12,7 @@ import 'package:sikarema_mobile/features/klaim_reward/presentation/pages/riwayat
 import 'package:sikarema_mobile/features/prestasi/presentation/pages/detail_prestasi_screen.dart';
 import 'package:sikarema_mobile/features/prestasi/presentation/pages/prestasi_screen.dart';
 import 'package:sikarema_mobile/features/prestasi/presentation/pages/tambah_prestasi_screen.dart';
+import 'package:sikarema_mobile/features/profile/presentation/pages/akun_screen.dart';
 
 class AppRouter {
   AppRouter._();
@@ -39,8 +40,30 @@ class AppRouter {
       ),
       GoRoute(
         path: AppRoutes.dashboard,
-        builder: (BuildContext context, GoRouterState state) {
-          return DashboardScreen();
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: const DashboardScreen(),
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return child;
+            },
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.akun,
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: const AkunScreen(),
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return child;
+            },
+          );
         },
       ),
       GoRoute(

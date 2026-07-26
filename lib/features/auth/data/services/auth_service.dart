@@ -80,4 +80,19 @@ class AuthService {
 
     return LoginResponse.fromJson(response.data as Map<String, dynamic>);
   }
+
+  /// Sends logout request to the Laravel Sanctum endpoint (POST /logout),
+  /// dipakai oleh AkunScreen. Butuh Bearer token dari StorageService,
+  /// sama seperti service lain di project ini.
+  Future<void> logout(String token) async {
+    await _dio.post(
+      ApiConstants.logoutEndpoint,
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token',
+          'ngrok-skip-browser-warning': 'true',
+        },
+      ),
+    );
+  }
 }

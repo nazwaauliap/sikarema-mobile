@@ -66,7 +66,7 @@ class KlaimLandingScreen extends StatelessWidget {
   /// Index 1 (Prestasi) -> push ke halaman Prestasi Saya.
   /// Index 2 (Klaim) -> sudah di halaman ini, tidak melakukan apa-apa.
   /// Index 3 (Riwayat) -> Riwayat Klaim.
-  /// Index 4 (Akun) -> belum ada halamannya, placeholder.
+  /// Index 4 (Akun) -> halaman Akun.
   void _onBottomNavTap(BuildContext context, int index) {
     switch (index) {
       case 0:
@@ -81,9 +81,8 @@ class KlaimLandingScreen extends StatelessWidget {
       case 3:
         context.push(AppRoutes.riwayatKlaim);
         break;
-      default:
-        // TODO(klaim_reward): Akun belum diimplementasikan, di luar
-        // scope Landing Page Klaim saat ini.
+      case 4:
+        context.push(AppRoutes.akun);
         break;
     }
   }

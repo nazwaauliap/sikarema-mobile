@@ -105,7 +105,7 @@ class _PrestasiScreenState extends State<PrestasiScreen> {
   /// Prestasi lagi; landing page-nya sendiri yang push ke
   /// pilihPrestasiKlaim saat tombolnya ditekan).
   /// Index 3 (Riwayat) -> Riwayat Klaim.
-  /// Index 4 (Akun) -> belum ada halamannya, placeholder.
+  /// Index 4 (Akun) -> halaman Akun.
   void _onBottomNavTap(int index) {
     switch (index) {
       case 0:
@@ -120,9 +120,8 @@ class _PrestasiScreenState extends State<PrestasiScreen> {
       case 3:
         context.push(AppRoutes.riwayatKlaim);
         break;
-      default:
-        // TODO(prestasi): Akun belum diimplementasikan, di luar scope
-        // fitur List Prestasi saat ini.
+      case 4:
+        context.push(AppRoutes.akun);
         break;
     }
   }

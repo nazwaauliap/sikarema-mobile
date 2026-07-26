@@ -157,9 +157,8 @@ class _RiwayatKlaimScreenState extends State<RiwayatKlaimScreen> {
             case 3:
               // Sudah berada di halaman Riwayat.
               break;
-            default:
-              // TODO(klaim_reward): Akun belum diimplementasikan, di
-              // luar scope Riwayat Klaim saat ini.
+            case 4:
+              context.push(AppRoutes.akun);
               break;
           }
         },

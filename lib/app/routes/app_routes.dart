@@ -6,6 +6,7 @@ class AppRoutes {
   static const login = '/login';
   static const dashboard = '/dashboard';
   static const prestasi = '/prestasi';
+  static const akun = '/akun';
 
   /// Route Tambah Prestasi. Didaftarkan SEBELUM pattern prestasiDetail
   /// di app_router.dart, supaya path ini tidak tertangkap oleh
