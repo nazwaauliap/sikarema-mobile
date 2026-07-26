@@ -11,29 +11,30 @@ import 'package:sikarema_mobile/features/klaim_reward/data/services/klaim_reward
 /// =====================================================================
 /// RIWAYAT KLAIM SCREEN (tab "Riwayat" pada Bottom Navigation)
 /// =====================================================================
-/// UI REFRESH (tanpa mengubah data/logic):
-/// Redesign tampilan supaya lebih compact & konsisten dengan card
-/// Prestasi (radius 16, shadow black alpha 0.04 blur 8, icon lingkaran
-/// 40px, badge pill radius 6, chevron_right) dan header Landing Klaim.
-/// TIDAK ada perubahan pada: service (KlaimRewardService), model
-/// (RiwayatKlaimModel/JenisRewardModel), cara fetch data (tetap
-/// Future.wait ke GET /klaim-reward + GET /jenis-reward untuk mapping
-/// nominal), routing, maupun BottomNavigationBar (tetap 5 item & index
-/// yang sama).
+/// UI FINAL v3 (mengikuti mockup terbaru — source of truth: instruksi
+/// user, mockup hanya referensi visual):
+/// - Header: judul + subtitle + placeholder logo 80x80 di kanan
+///   (Container rounded, siap diganti Image.asset(fit: BoxFit.contain)
+///   oleh user nanti).
+/// - Search bar: UI SAJA, tidak ada logic filter/pencarian data, tidak
+///   ada perubahan ke API.
+/// - 4 pill filter status (Semua/Diproses/Disetujui/Ditolak): UI SAJA,
+///   toggle warna aktif/tidak aktif murni state tampilan lokal, TIDAK
+///   memfilter/menyembunyikan data list (list tetap menampilkan semua
+///   item dari API, sesuai instruksi "belum perlu logika filtering").
+/// - Info reward: kembali menampilkan `item.reward` APA ADANYA dari
+///   API (bukan hasil pencocokan nominal seperti versi sebelumnya).
+///   Konsekuensinya, pemanggilan KlaimRewardService.getJenisRewardList()
+///   DIHAPUS dari layar ini (sudah tidak dipakai lagi di sini) — method
+///   itu sendiri TETAP ada & tidak diubah di service (masih dipakai
+///   KonfirmasiKlaimScreen). Sekarang cukup 1 panggilan API:
+///   getRiwayatKlaim().
+/// - Icon kiri card: kotak rounded (bukan lingkaran) sesuai mockup.
+/// - Badge status: baris tersendiri di atas judul (bukan sejajar
+///   kanan atas), sesuai mockup.
 ///
-/// CATATAN LOKASI FILE: instruksi awal meminta path
-/// lib/features/klaim/presentation/pages/riwayat_klaim_screen.dart,
-/// tapi project ini tidak punya folder fitur "klaim" — semua yang
-/// berhubungan klaim reward sudah konsisten hidup di folder fitur
-/// "klaim_reward", jadi file ini tetap di lokasi tersebut.
-///
-/// SUMBER DATA (tidak berubah):
-/// - GET /klaim-reward (KlaimRewardService.getRiwayatKlaim()).
-/// - GET /jenis-reward (KlaimRewardService.getJenisRewardList()) —
-///   dipakai untuk mencocokkan nominal Rupiah, karena response
-///   GET /klaim-reward tidak menyertakan nominal. Kalau nama reward
-///   tidak match ke data master, nominal tidak ditampilkan (bukan
-///   ditebak) — fallback menampilkan nama reward apa adanya.
+/// Model, service (selain pemanggilan yang disebut di atas), routing,
+/// dan BottomNavigationBar TIDAK diubah.
 /// =====================================================================
 class RiwayatKlaimScreen extends StatefulWidget {
   const RiwayatKlaimScreen({super.key});
@@ -49,9 +50,12 @@ class _RiwayatKlaimScreenState extends State<RiwayatKlaimScreen> {
   String? _errorMessage;
   List<RiwayatKlaimModel> _riwayatList = [];
 
-  /// Lookup nominal Rupiah berdasarkan nama reward, dari data master
-  /// GET /jenis-reward (bukan tebakan — hasil pencocokan nama persis).
-  Map<String, String> _nominalByRewardName = {};
+  /// State UI murni untuk pill filter status yang aktif secara visual.
+  /// TIDAK memengaruhi data yang ditampilkan (belum ada logika
+  /// filtering, sesuai instruksi).
+  int _selectedFilterIndex = 0;
+
+  static const _filterLabels = ['Semua', 'Diproses', 'Disetujui', 'Ditolak'];
 
   @override
   void initState() {
@@ -66,24 +70,10 @@ class _RiwayatKlaimScreenState extends State<RiwayatKlaimScreen> {
     });
 
     try {
-      final results = await Future.wait([
-        _klaimRewardService.getRiwayatKlaim(),
-        _klaimRewardService.getJenisRewardList(),
-      ]);
-
+      final response = await _klaimRewardService.getRiwayatKlaim();
       if (!mounted) return;
-
-      final riwayatResponse = results[0] as RiwayatKlaimResponse;
-      final jenisRewardResponse = results[1] as JenisRewardResponse;
-
-      final nominalMap = <String, String>{
-        for (final reward in jenisRewardResponse.data)
-          reward.namaReward: reward.nominalFormatted,
-      };
-
       setState(() {
-        _riwayatList = riwayatResponse.data;
-        _nominalByRewardName = nominalMap;
+        _riwayatList = response.data;
         _isLoading = false;
       });
     } on DioException catch (e) {
@@ -114,9 +104,32 @@ class _RiwayatKlaimScreenState extends State<RiwayatKlaimScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Padding(
-              padding: EdgeInsets.fromLTRB(20, 14, 20, 8),
+              padding: EdgeInsets.fromLTRB(20, 14, 20, 16),
               child: _RiwayatHeader(),
             ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: _SearchBar(),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 36,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: _filterLabels.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final isActive = index == _selectedFilterIndex;
+                  return _FilterPill(
+                    label: _filterLabels[index],
+                    isActive: isActive,
+                    onTap: () => setState(() => _selectedFilterIndex = index),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 14),
             Expanded(child: _buildBody()),
           ],
         ),
@@ -182,9 +195,9 @@ class _RiwayatKlaimScreenState extends State<RiwayatKlaimScreen> {
   Widget _buildBody() {
     if (_isLoading) {
       return ListView.separated(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
         itemCount: 4,
-        separatorBuilder: (_, _) => const SizedBox(height: 10),
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (_, _) => const _RiwayatSkeletonCard(),
       );
     }
@@ -198,54 +211,165 @@ class _RiwayatKlaimScreenState extends State<RiwayatKlaimScreen> {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       itemCount: _riwayatList.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 10),
-      itemBuilder: (context, index) {
-        final item = _riwayatList[index];
-        return _RiwayatCard(
-          item: item,
-          nominalFormatted: _nominalByRewardName[item.reward],
-        );
-      },
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      itemBuilder: (context, index) => _RiwayatCard(item: _riwayatList[index]),
     );
   }
 }
 
 /// =====================================================================
-/// HEADER
+/// HEADER (judul + subtitle + placeholder logo kanan)
 /// =====================================================================
-/// Typography & padding disamakan dengan pola judul halaman lain
-/// (mis. AppBar "Prestasi Saya" pakai AppTextStyles.titleMedium),
-/// dibuat sedikit lebih besar & bold karena berfungsi sebagai judul
-/// halaman (tidak ada AppBar), namun spacing dipadatkan supaya tidak
-/// menyisakan ruang kosong berlebih di atas card pertama.
 class _RiwayatHeader extends StatelessWidget {
   const _RiwayatHeader();
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Riwayat Klaim',
-          style: AppTextStyles.titleMedium.copyWith(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: AppColors.black,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Riwayat Klaim',
+                style: AppTextStyles.titleMedium.copyWith(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.black,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Lihat seluruh pengajuan reward yang pernah Anda ajukan.',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.grey,
+                  fontSize: 12.5,
+                  height: 1.35,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          'Lihat seluruh pengajuan reward yang pernah Anda ajukan.',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.grey,
-            fontSize: 12.5,
-            height: 1.35,
+        const SizedBox(width: 12),
+        // Placeholder logo/ilustrasi (80x80). User akan mengganti
+        // dengan Image.asset(..., fit: BoxFit.contain) sendiri nanti.
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: AppColors.primaryBlue.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          alignment: Alignment.center,
+          child: Icon(
+            Icons.image_outlined,
+            color: AppColors.primaryBlue.withValues(alpha: 0.4),
+            size: 28,
           ),
         ),
       ],
+    );
+  }
+}
+
+/// =====================================================================
+/// SEARCH BAR (UI SAJA — tidak ada logic pencarian)
+/// =====================================================================
+class _SearchBar extends StatelessWidget {
+  const _SearchBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: const Color.fromARGB(255, 126, 124, 124).withValues(alpha: 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      child: Row(
+        children: [
+          Icon(Icons.search, size: 20, color: Colors.grey.shade400),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              style: AppTextStyles.bodyMedium.copyWith(fontSize: 13.5),
+              decoration: InputDecoration(
+                isDense: true,
+                border: InputBorder.none,
+                hintText: 'Cari berdasarkan prestasi...',
+                hintStyle: AppTextStyles.bodyMedium.copyWith(
+                  fontSize: 13.5,
+                  color: Colors.grey.shade400,
+                ),
+              ),
+            ),
+          ),
+          Container(
+            width: 1,
+            height: 22,
+            color: Colors.grey.shade200,
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+          ),
+          Icon(
+            Icons.tune_rounded,
+            size: 20,
+            color: AppColors.primaryBlue.withValues(alpha: 0.7),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// =====================================================================
+/// PILL FILTER STATUS (UI SAJA — tidak memfilter data)
+/// =====================================================================
+class _FilterPill extends StatelessWidget {
+  const _FilterPill({
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: onTap,
+      child: Container(
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.primaryBlue : AppColors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive ? AppColors.primaryBlue : Colors.grey.shade300,
+          ),
+        ),
+        child: Text(
+          label,
+          style: AppTextStyles.bodyMedium.copyWith(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+            color: isActive ? AppColors.white : AppColors.primaryBlue,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -282,7 +406,7 @@ class _StatusStyle {
     }
     // Fallback: Diproses/Menunggu/status lain yang belum tercakup.
     return _StatusStyle(
-      color: AppColors.warning,
+      color: AppColors.primaryBlue,
       icon: Icons.hourglass_top_rounded,
       label: statusKlaim.isEmpty ? 'Diproses' : statusKlaim,
     );
@@ -292,16 +416,10 @@ class _StatusStyle {
 /// =====================================================================
 /// CARD RIWAYAT KLAIM
 /// =====================================================================
-/// Mengikuti pola card item Prestasi persis: InkWell + Container
-/// radius 16, shadow black alpha 0.04 blur 8 offset (0,2), icon
-/// lingkaran, badge pill radius 6, chevron_right di kanan judul.
-/// Card dibuat lebih compact (padding & spacing internal dipadatkan)
-/// dibanding versi sebelumnya.
 class _RiwayatCard extends StatelessWidget {
-  const _RiwayatCard({required this.item, required this.nominalFormatted});
+  const _RiwayatCard({required this.item});
 
   final RiwayatKlaimModel item;
-  final String? nominalFormatted;
 
   @override
   Widget build(BuildContext context) {
@@ -327,33 +445,36 @@ class _RiwayatCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 44,
-              height: 44,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: status.color.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(status.icon, color: status.color, size: 22),
+              child: Icon(status.icon, color: status.color, size: 24),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  _StatusBadge(status: status),
+                  const SizedBox(height: 6),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: Text(
                           item.prestasi,
                           style: AppTextStyles.bodyMedium.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
                           ),
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      const SizedBox(width: 6),
                       const Icon(
                         Icons.chevron_right,
                         color: AppColors.grey,
@@ -361,27 +482,19 @@ class _RiwayatCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      _StatusBadge(status: status),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          nominalFormatted ?? item.reward,
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: nominalFormatted != null
-                                ? AppColors.primaryBlue
-                                : AppColors.grey,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 3),
+                  // Info reward apa adanya dari API, tanpa label
+                  // "Reward" dan tanpa pencocokan nominal.
+                  Text(
+                    item.reward,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontSize: 12.5,
+                      color: AppColors.grey,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   Divider(height: 1, color: Colors.grey.shade200),
                   const SizedBox(height: 8),
                   Row(
@@ -442,15 +555,29 @@ class _StatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
         color: status.color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(
-        status.label,
-        style: AppTextStyles.bodyMedium.copyWith(
-          fontSize: 10.5,
-          fontWeight: FontWeight.w600,
-          color: status.color,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(
+              color: status.color,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            status.label,
+            style: AppTextStyles.bodyMedium.copyWith(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+              color: status.color,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -492,11 +619,11 @@ class _RiwayatSkeletonCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: Colors.grey.shade200,
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(14),
             ),
           ),
           const SizedBox(width: 12),
@@ -504,8 +631,10 @@ class _RiwayatSkeletonCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                bar(width: 140, height: 13),
+                bar(width: 70, height: 12),
                 const SizedBox(height: 8),
+                bar(width: 150, height: 13),
+                const SizedBox(height: 6),
                 bar(width: 90, height: 10),
                 const SizedBox(height: 10),
                 bar(width: 170, height: 9),
