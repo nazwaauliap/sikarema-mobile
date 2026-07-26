@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -152,6 +154,101 @@ class _AkunScreenState extends State<AkunScreen> {
     );
   }
 
+  void _showAboutAppDialog() {
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.25),
+      builder: (dialogContext) {
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+          child: Center(
+            child: AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.info_outline_rounded,
+                      color: AppColors.primaryBlue,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'SIKAREMA',
+                    style: AppTextStyles.titleMedium.copyWith(
+                      color: AppColors.black,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Sistem Klaim Reward Mahasiswa',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.grey,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Aplikasi SIKAREMA digunakan untuk memudahkan mahasiswa '
+                    'dalam mengajukan klaim reward atas prestasi yang telah diraih.',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.grey,
+                      height: 1.45,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Versi 1.0.0',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.primaryBlue,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    '© 2026\nUniversitas Muhammadiyah Banjarmasin',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.grey,
+                      fontSize: 12,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(
+                    'Tutup',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.primaryBlue,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -248,7 +345,7 @@ class _AkunScreenState extends State<AkunScreen> {
         const SizedBox(height: 14),
         _InfoMahasiswaCard(profile: profile),
         const SizedBox(height: 14),
-        const _TentangAplikasiCard(),
+        _TentangAplikasiCard(onTap: _showAboutAppDialog),
         const SizedBox(height: 20),
         _LogoutButton(onTap: _showLogoutDialog),
       ],
@@ -524,66 +621,71 @@ class _InfoRow extends StatelessWidget {
 }
 
 /// =====================================================================
-/// CARD TENTANG APLIKASI (info saja, belum ada navigasi)
+/// CARD TENTANG APLIKASI
 /// =====================================================================
 class _TentangAplikasiCard extends StatelessWidget {
-  const _TentangAplikasiCard();
+  const _TentangAplikasiCard({required this.onTap});
+
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: AppColors.primaryBlue.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-            child: const Icon(
-              Icons.info_outline_rounded,
-              color: AppColors.primaryBlue,
-              size: 19,
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.info_outline_rounded,
+                color: AppColors.primaryBlue,
+                size: 19,
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Tentang Aplikasi',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13.5,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Tentang Aplikasi',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13.5,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Versi 1.0.0',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    fontSize: 12,
-                    color: AppColors.grey,
+                  const SizedBox(height: 2),
+                  Text(
+                    'Versi 1.0.0',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontSize: 12,
+                      color: AppColors.grey,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const Icon(Icons.chevron_right, color: AppColors.grey, size: 20),
-        ],
+            const Icon(Icons.chevron_right, color: AppColors.grey, size: 20),
+          ],
+        ),
       ),
     );
   }
