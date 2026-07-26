@@ -13,9 +13,7 @@ import 'package:sikarema_mobile/features/klaim_reward/data/services/klaim_reward
 /// =====================================================================
 /// UI FINAL v3 (mengikuti mockup terbaru — source of truth: instruksi
 /// user, mockup hanya referensi visual):
-/// - Header: judul + subtitle + placeholder logo 80x80 di kanan
-///   (Container rounded, siap diganti Image.asset(fit: BoxFit.contain)
-///   oleh user nanti).
+/// - Header: judul + subtitle + ilustrasi asset 75x75 di kanan.
 /// - Search bar: UI SAJA, tidak ada logic filter/pencarian data, tidak
 ///   ada perubahan ke API.
 /// - 4 pill filter status (Semua/Diproses/Disetujui/Ditolak): UI SAJA,
@@ -104,7 +102,7 @@ class _RiwayatKlaimScreenState extends State<RiwayatKlaimScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Padding(
-              padding: EdgeInsets.fromLTRB(20, 14, 20, 16),
+              padding: EdgeInsets.fromLTRB(20, 12, 20, 16),
               child: _RiwayatHeader(),
             ),
             const Padding(
@@ -113,23 +111,27 @@ class _RiwayatKlaimScreenState extends State<RiwayatKlaimScreen> {
             ),
             const SizedBox(height: 12),
             SizedBox(
-              height: 36,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
+              height: 32,
+              child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: _filterLabels.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final isActive = index == _selectedFilterIndex;
-                  return _FilterPill(
-                    label: _filterLabels[index],
-                    isActive: isActive,
-                    onTap: () => setState(() => _selectedFilterIndex = index),
-                  );
-                },
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.zero,
+                  itemCount: _filterLabels.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final isActive = index == _selectedFilterIndex;
+                    return _FilterPill(
+                      label: _filterLabels[index],
+                      isActive: isActive,
+                      onTap: () =>
+                          setState(() => _selectedFilterIndex = index),
+                    );
+                  },
+                ),
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 8),
             Expanded(child: _buildBody()),
           ],
         ),
@@ -195,7 +197,7 @@ class _RiwayatKlaimScreenState extends State<RiwayatKlaimScreen> {
   Widget _buildBody() {
     if (_isLoading) {
       return ListView.separated(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
         itemCount: 4,
         separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (_, _) => const _RiwayatSkeletonCard(),
@@ -211,7 +213,7 @@ class _RiwayatKlaimScreenState extends State<RiwayatKlaimScreen> {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
       itemCount: _riwayatList.length,
       separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) => _RiwayatCard(item: _riwayatList[index]),
@@ -220,58 +222,62 @@ class _RiwayatKlaimScreenState extends State<RiwayatKlaimScreen> {
 }
 
 /// =====================================================================
-/// HEADER (judul + subtitle + placeholder logo kanan)
+/// HEADER (judul + subtitle + ilustrasi kanan)
 /// =====================================================================
 class _RiwayatHeader extends StatelessWidget {
   const _RiwayatHeader();
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Riwayat Klaim',
-                style: AppTextStyles.titleMedium.copyWith(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.black,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final imageSize = constraints.maxWidth < 280 ? 56.0 : 75.0;
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Riwayat Klaim',
+                    style: AppTextStyles.titleMedium.copyWith(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Lihat seluruh pengajuan reward yang pernah Anda lakukan.',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.grey,
+                      fontSize: 12.5,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            SizedBox(
+              width: imageSize,
+              height: imageSize,
+              child: Image.asset(
+                'assets/images/riwayat_header.png',
+                fit: BoxFit.contain,
+                errorBuilder: (_, _, _) => Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBlue.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                'Lihat seluruh pengajuan reward yang pernah Anda ajukan.',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.grey,
-                  fontSize: 12.5,
-                  height: 1.35,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        // Placeholder logo/ilustrasi (80x80). User akan mengganti
-        // dengan Image.asset(..., fit: BoxFit.contain) sendiri nanti.
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: AppColors.primaryBlue.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          alignment: Alignment.center,
-          child: Icon(
-            Icons.image_outlined,
-            color: AppColors.primaryBlue.withValues(alpha: 0.4),
-            size: 28,
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -284,49 +290,27 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: const Color.fromARGB(255, 126, 124, 124).withValues(alpha: 0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-      child: Row(
-        children: [
-          Icon(Icons.search, size: 20, color: Colors.grey.shade400),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              style: AppTextStyles.bodyMedium.copyWith(fontSize: 13.5),
-              decoration: InputDecoration(
-                isDense: true,
-                border: InputBorder.none,
-                hintText: 'Cari berdasarkan prestasi...',
-                hintStyle: AppTextStyles.bodyMedium.copyWith(
-                  fontSize: 13.5,
-                  color: Colors.grey.shade400,
-                ),
-              ),
-            ),
-          ),
-          Container(
-            width: 1,
-            height: 22,
-            color: Colors.grey.shade200,
-            margin: const EdgeInsets.symmetric(horizontal: 8),
-          ),
-          Icon(
-            Icons.tune_rounded,
-            size: 20,
-            color: AppColors.primaryBlue.withValues(alpha: 0.7),
-          ),
-        ],
+    return TextField(
+      style: AppTextStyles.bodyMedium,
+      decoration: InputDecoration(
+        hintText: 'Cari berdasarkan prestasi...',
+        hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey),
+        prefixIcon: const Icon(Icons.search, color: AppColors.grey),
+        filled: true,
+        fillColor: AppColors.white,
+        contentPadding: const EdgeInsets.symmetric(vertical: 0),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: AppColors.grey.withValues(alpha: 0.2)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: AppColors.grey.withValues(alpha: 0.2)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.primaryBlue),
+        ),
       ),
     );
   }
@@ -364,7 +348,7 @@ class _FilterPill extends StatelessWidget {
         child: Text(
           label,
           style: AppTextStyles.bodyMedium.copyWith(
-            fontSize: 12.5,
+            fontSize: 12,
             fontWeight: FontWeight.w600,
             color: isActive ? AppColors.white : AppColors.primaryBlue,
           ),
@@ -429,7 +413,7 @@ class _RiwayatCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       onTap: () {},
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(16),
@@ -445,13 +429,13 @@ class _RiwayatCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 color: status.color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(status.icon, color: status.color, size: 24),
+              child: Icon(status.icon, color: status.color, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -470,67 +454,64 @@ class _RiwayatCard extends StatelessWidget {
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      const SizedBox(width: 6),
-                      const Icon(
-                        Icons.chevron_right,
-                        color: AppColors.grey,
-                        size: 20,
                       ),
                     ],
                   ),
                   const SizedBox(height: 3),
-                  // Info reward apa adanya dari API, tanpa label
-                  // "Reward" dan tanpa pencocokan nominal.
                   Text(
                     item.reward,
                     style: AppTextStyles.bodyMedium.copyWith(
                       fontSize: 12.5,
                       color: AppColors.grey,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 10),
                   Divider(height: 1, color: Colors.grey.shade200),
                   const SizedBox(height: 8),
-                  Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.calendar_today_outlined,
-                        size: 12,
-                        color: AppColors.grey,
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          FormatHelper.tanggalIndo(item.tanggalPengajuan),
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            fontSize: 11,
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.calendar_today_outlined,
+                            size: 12,
                             color: AppColors.grey,
                           ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              FormatHelper.tanggalIndo(
+                                item.tanggalPengajuan,
+                              ),
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                fontSize: 11,
+                                color: AppColors.grey,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 10),
-                      const Icon(
-                        Icons.folder_outlined,
-                        size: 12,
-                        color: AppColors.grey,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          item.periode,
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            fontSize: 11,
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.folder_outlined,
+                            size: 12,
                             color: AppColors.grey,
                           ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              item.periode,
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                fontSize: 11,
+                                color: AppColors.grey,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
