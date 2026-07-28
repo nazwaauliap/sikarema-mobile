@@ -46,6 +46,7 @@ dependencies:
   shared_preferences: ^2.5.5
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.14.4
   flutter_test:
     sdk: flutter
 
@@ -68,3 +69,10 @@ flutter:
     - assets/images/
     - assets/logo/
     - assets/animations/
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/images/logo-sikarema-android.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/logo-sikarema-android.png"
